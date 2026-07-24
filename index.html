@@ -9,106 +9,113 @@
 <style>
 
 body{
-    margin:0;
-    background:#fff0b3;
-    font-family:'Comic Sans MS',cursive;
+margin:0;
+background:#fff1b8;
+font-family:'Comic Sans MS',cursive;
 }
 
-.box{
-    width:90%;
-    max-width:400px;
-    margin:30px auto;
-    background:white;
-    border-radius:35px;
-    padding:25px;
-    text-align:center;
-    box-shadow:0 10px 25px #bbb;
+.card{
+width:90%;
+max-width:400px;
+margin:25px auto;
+background:white;
+border-radius:35px;
+padding:25px;
+text-align:center;
+box-shadow:0 10px 25px #bbb;
 }
 
 
 .dp{
-    width:100px;
-    height:100px;
-    border-radius:50%;
-    object-fit:cover;
-    border:5px solid #ffcc00;
+width:100px;
+height:100px;
+border-radius:50%;
+object-fit:cover;
+border:5px solid #ffd000;
 }
 
 
 h1{
-    color:#ff6b00;
+color:#ff6800;
+font-family:monospace;
 }
 
 
-.money{
-    background:#ffe066;
-    padding:12px;
-    border-radius:25px;
-    font-size:25px;
-    font-weight:bold;
+.amount{
+background:#ffe066;
+padding:12px;
+border-radius:25px;
+font-size:25px;
+font-weight:bold;
 }
 
 
 #qrcode{
-    margin:20px;
+margin:20px auto;
 }
 
 
 button{
-
-    width:90%;
-    padding:15px;
-    margin:10px;
-
-    border:0;
-    border-radius:30px;
-
-    font-size:18px;
-    color:white;
-
+width:90%;
+height:60px;
+margin:10px;
+border:none;
+border-radius:30px;
+font-size:18px;
+color:white;
+font-weight:bold;
+display:flex;
+align-items:center;
+justify-content:center;
+gap:10px;
 }
 
 
 .pay{
-    background:#22c55e;
+background:#22c55e;
 }
 
 
 .paid{
-    background:#ff4d8d;
+background:#ff4d8d;
+}
+
+
+.gif{
+width:35px;
+height:35px;
+object-fit:contain;
 }
 
 
 input{
-    display:none;
+display:none;
 }
 
 
 #preview{
-    width:250px;
-    border-radius:15px;
-    margin-top:15px;
+width:250px;
+margin-top:15px;
+border-radius:15px;
 }
-
 
 </style>
 
 </head>
 
-
 <body>
 
 
-<div class="box">
+<div class="card">
 
 
-<img src="logo.jpg" class="dp">
+<img src="dp.png" class="dp">
 
 
-<h1>🤑 Sunny Pay 💰</h1>
+<h1>𝙰𝚊𝙱𝚋𝙲𝚌𝙳𝚍𝙴𝚎𝙵𝚏𝙶𝚐 Pay</h1>
 
 
-<div class="money">
+<div class="amount">
 ₹ <span id="amount"></span>
 </div>
 
@@ -116,21 +123,32 @@ input{
 <div id="qrcode"></div>
 
 
+
 <button class="pay" onclick="payNow()">
-🚀 Pay Now
+
+<img src="rocket.gif" class="gif">
+
+Pay Now
+
 </button>
+
 
 
 <button class="paid" onclick="upload()">
-✅ Paid
+
+<img src="tick.gif" class="gif">
+
+Paid
+
 </button>
+
 
 
 <input 
 type="file"
 id="file"
-accept="image/*"
-capture="environment">
+accept="image/*">
+
 
 
 <img id="preview">
@@ -143,20 +161,14 @@ capture="environment">
 <script>
 
 
-// URL DATA
-
-const data = new URLSearchParams(window.location.search);
+const params=new URLSearchParams(location.search);
 
 
-let upi = data.get("upiid");
-
-let amount = data.get("amount");
-
+let upi=params.get("upiid");
+let amount=params.get("amount");
 
 
 if(!upi || !amount){
-
-alert("Invalid Payment Link");
 
 upi="8447633950@pthdfc";
 amount="1";
@@ -169,40 +181,34 @@ document.getElementById("amount").innerHTML=amount;
 
 
 
-// UPI LINK
-
-let upiURL =
-"upi://pay?pa="+encodeURIComponent(upi)+
-"&pn=Sunny%20Pay"+
-"&am="+amount+
-"&cu=INR";
+let upiLink=
+`upi://pay?pa=${encodeURIComponent(upi)}&pn=Sunny%20Pay&am=${amount}&cu=INR`;
 
 
 
-// QR CODE
+// QR
 
 new QRCode(
 document.getElementById("qrcode"),
 {
-text:upiURL,
+text:upiLink,
 width:220,
 height:220
-}
-);
+});
 
 
 
-// OPEN UPI APP
+// Pay Button
 
 function payNow(){
 
-window.location.href=upiURL;
+window.location.href=upiLink;
 
 }
 
 
 
-// UPLOAD PAYMENT PROOF
+// Paid Upload
 
 function upload(){
 
@@ -222,11 +228,9 @@ document.getElementById("preview").src=e.target.result;
 
 }
 
-
 reader.readAsDataURL(this.files[0]);
 
 }
-
 
 
 </script>
