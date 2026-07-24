@@ -1,110 +1,160 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>UPI Payment</title>
+<title>Cartoon UPI Pay</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <style>
 body{
-    font-family: Arial;
+    margin:0;
+    font-family:'Comic Sans MS',Arial;
+    background:#fff3cd;
     text-align:center;
-    padding:20px;
+}
+
+.card{
+    margin:30px auto;
+    width:85%;
+    background:white;
+    border-radius:30px;
+    padding:25px;
+    box-shadow:0 8px 20px #ccc;
+}
+
+.character{
+    font-size:70px;
+}
+
+h1{
+    color:#ff6b00;
+}
+
+.amount{
+    background:#ffe066;
+    padding:10px;
+    border-radius:20px;
+    font-size:22px;
 }
 
 #qrcode{
     margin:20px auto;
-    width:220px;
 }
 
 button{
-    background:#1677ff;
+    width:80%;
+    padding:15px;
+    margin:10px;
+    border:none;
+    border-radius:25px;
+    font-size:18px;
     color:white;
-    border:0;
-    padding:12px 30px;
-    border-radius:8px;
-    font-size:16px;
+    cursor:pointer;
+}
+
+.pay{
+    background:#28a745;
+}
+
+.paid{
+    background:#ff5c8a;
 }
 
 input{
     display:none;
 }
 
-#preview{
+img{
     max-width:250px;
-    margin-top:20px;
+    border-radius:15px;
 }
-</style>
 
+</style>
 </head>
 
 <body>
 
-<h2>Scan & Pay</h2>
+<div class="card">
 
-<h3 id="amount"></h3>
+<div class="character">🤑💰</div>
+
+<h1>Sunny Pay</h1>
+
+<div class="amount">
+Pay ₹<span id="amt"></span>
+</div>
+
 
 <div id="qrcode"></div>
 
-<button onclick="payDone()">Paid</button>
 
-<input type="file" id="upload" accept="image/*" capture="environment">
+<button class="pay" onclick="payNow()">
+🚀 Pay Now
+</button>
 
-<br>
+
+<button class="paid" onclick="uploadProof()">
+✅ Paid
+</button>
+
+
+<input type="file" id="file" accept="image/*" capture="environment">
 
 <img id="preview">
 
+</div>
+
+
 <script>
 
-const params = new URLSearchParams(location.search);
+const params=new URLSearchParams(location.search);
 
-let upi = params.get("upiid");
-let amount = params.get("amount");
-
-if(!upi || !amount){
-    upi="8447633950@pthdfc";
-    amount="1";
-}
-
-document.getElementById("amount").innerHTML="Pay ₹"+amount;
+let upi=params.get("upiid") || "8447633950@pthdfc";
+let amount=params.get("amount") || "1";
 
 
-// UPI QR
-let upiLink =
-`upi://pay?pa=${upi}&pn=Payment&am=${amount}&cu=INR`;
+document.getElementById("amt").innerHTML=amount;
 
-new QRCode(document.getElementById("qrcode"),{
-    text:upiLink,
-    width:220,
-    height:220
+
+let upiLink=
+`upi://pay?pa=${upi}&pn=Sunny%20Pay&am=${amount}&cu=INR`;
+
+
+// QR Generate
+
+new QRCode(
+document.getElementById("qrcode"),
+{
+text:upiLink,
+width:220,
+height:220
 });
 
 
-// Paid button
+// Open UPI App
 
-function payDone(){
-
-    document.getElementById("upload").click();
-
+function payNow(){
+    window.location.href=upiLink;
 }
 
 
-document.getElementById("upload").onchange=function(){
+// Upload payment proof
 
-    let file=this.files[0];
+function uploadProof(){
+    document.getElementById("file").click();
+}
 
-    if(file){
 
-        let reader=new FileReader();
+document.getElementById("file").onchange=function(){
 
-        reader.onload=function(e){
-            document.getElementById("preview").src=e.target.result;
-        }
+let reader=new FileReader();
 
-        reader.readAsDataURL(file);
+reader.onload=function(e){
+document.getElementById("preview").src=e.target.result;
+}
 
-    }
+reader.readAsDataURL(this.files[0]);
 
 }
 
