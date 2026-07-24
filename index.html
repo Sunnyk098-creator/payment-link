@@ -1,52 +1,113 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UPI Redirect</title>
+<title>UPI Payment</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+body{
+    font-family: Arial;
+    text-align:center;
+    padding:20px;
+}
+
+#qrcode{
+    margin:20px auto;
+    width:220px;
+}
+
+button{
+    background:#1677ff;
+    color:white;
+    border:0;
+    padding:12px 30px;
+    border-radius:8px;
+    font-size:16px;
+}
+
+input{
+    display:none;
+}
+
+#preview{
+    max-width:250px;
+    margin-top:20px;
+}
+</style>
+
 </head>
+
 <body>
 
-<h2 style="text-align:center;">Redirecting to UPI App...</h2>
+<h2>Scan & Pay</h2>
+
+<h3 id="amount"></h3>
+
+<div id="qrcode"></div>
+
+<button onclick="payDone()">Paid</button>
+
+<input type="file" id="upload" accept="image/*" capture="environment">
+
+<br>
+
+<img id="preview">
 
 <script>
-// Supports:
-// ?upiid=abc@upi&amount=100
-// OR /upiid=abc@upiamount=100
 
-let upi = "";
-let amount = "";
+const params = new URLSearchParams(location.search);
 
-const params = new URLSearchParams(window.location.search);
+let upi = params.get("upiid");
+let amount = params.get("amount");
 
-if (params.get("upiid")) {
-    upi = params.get("upiid");
-    amount = params.get("amount");
-} else {
-    const path = decodeURIComponent(location.pathname);
-    const match = path.match(/upiid=(.+?)amount=(.+)/);
+if(!upi || !amount){
+    upi="8447633950@pthdfc";
+    amount="1";
+}
 
-    if (match) {
-        upi = match[1];
-        amount = match[2];
+document.getElementById("amount").innerHTML="Pay ₹"+amount;
+
+
+// UPI QR
+let upiLink =
+`upi://pay?pa=${upi}&pn=Payment&am=${amount}&cu=INR`;
+
+new QRCode(document.getElementById("qrcode"),{
+    text:upiLink,
+    width:220,
+    height:220
+});
+
+
+// Paid button
+
+function payDone(){
+
+    document.getElementById("upload").click();
+
+}
+
+
+document.getElementById("upload").onchange=function(){
+
+    let file=this.files[0];
+
+    if(file){
+
+        let reader=new FileReader();
+
+        reader.onload=function(e){
+            document.getElementById("preview").src=e.target.result;
+        }
+
+        reader.readAsDataURL(file);
+
     }
+
 }
 
-if (upi && amount) {
-    const upiLink = `upi://pay?pa=${encodeURIComponent(upi)}&pn=Payment&am=${amount}&cu=INR`;
-
-    window.location.href = upiLink;
-
-    setTimeout(() => {
-        document.body.innerHTML = `
-        <h2 style="text-align:center;">UPI App not opened</h2>
-        <p style="text-align:center;">
-        <a href="${upiLink}">Tap here to open UPI App</a>
-        </p>`;
-    }, 3000);
-} else {
-    document.body.innerHTML = "<h2 style='text-align:center;color:red;'>Invalid URL</h2>";
-}
 </script>
 
 </body>
