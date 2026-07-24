@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
+
 <title>Sunny Pay</title>
+
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -9,99 +11,134 @@
 <style>
 
 body{
-margin:0;
-background:#fff1b8;
-font-family:'Comic Sans MS',cursive;
+    margin:0;
+    background:#fff2b8;
+    font-family:'Comic Sans MS',cursive;
 }
 
 .card{
-width:90%;
-max-width:400px;
-margin:25px auto;
-background:white;
-border-radius:35px;
-padding:25px;
-text-align:center;
-box-shadow:0 10px 25px #bbb;
+
+    width:90%;
+    max-width:400px;
+    margin:25px auto;
+    background:white;
+    border-radius:35px;
+    padding:25px;
+    text-align:center;
+    box-shadow:0 10px 25px #bbb;
+
 }
 
 
-.dp{
-width:100px;
-height:100px;
-border-radius:50%;
-object-fit:cover;
-border:5px solid #ffd000;
+.logo{
+
+    width:100px;
+    height:100px;
+    border-radius:50%;
+    object-fit:cover;
+    border:5px solid #ffd000;
+
 }
 
 
 h1{
-color:#ff6800;
-font-family:monospace;
+
+    color:#ff6800;
+    font-family:monospace;
+
+}
+
+
+.user{
+
+    font-size:18px;
+    color:#555;
+
 }
 
 
 .amount{
-background:#ffe066;
-padding:12px;
-border-radius:25px;
-font-size:25px;
-font-weight:bold;
+
+    background:#ffe066;
+    padding:12px;
+    border-radius:25px;
+    font-size:26px;
+    font-weight:bold;
+
 }
 
 
 #qrcode{
-margin:20px auto;
+
+    margin:20px auto;
+
 }
 
 
 button{
-width:90%;
-height:60px;
-margin:10px;
-border:none;
-border-radius:30px;
-font-size:18px;
-color:white;
-font-weight:bold;
-display:flex;
-align-items:center;
-justify-content:center;
-gap:10px;
+
+    width:90%;
+    height:60px;
+    margin:10px;
+
+    border:none;
+    border-radius:30px;
+
+    color:white;
+    font-size:18px;
+    font-weight:bold;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+
 }
 
 
 .pay{
-background:#22c55e;
+
+    background:#22c55e;
+
 }
 
 
 .paid{
-background:#ff4d8d;
+
+    background:#ff4d8d;
+
 }
 
 
 .gif{
-width:35px;
-height:35px;
-object-fit:contain;
+
+    width:35px;
+    height:35px;
+    object-fit:contain;
+
 }
 
 
 input{
-display:none;
+
+    display:none;
+
 }
 
 
 #preview{
-width:250px;
-margin-top:15px;
-border-radius:15px;
+
+    width:250px;
+    margin-top:15px;
+    border-radius:15px;
+
 }
+
 
 </style>
 
 </head>
+
 
 <body>
 
@@ -109,18 +146,30 @@ border-radius:15px;
 <div class="card">
 
 
-<img src="logo.jpg" class="dp">
+<img src="logo.jpg" class="logo">
 
 
 <h1>𝙰𝚊𝙱𝚋𝙲𝚌𝙳𝚍𝙴𝚎𝙵𝚏𝙶𝚐 Pay</h1>
 
 
-<div class="amount">
-₹ <span id="amount"></span>
+<div class="user">
+sunny kumar
 </div>
 
 
+<br>
+
+
+<div class="amount">
+
+₹ <span id="amount"></span>
+
+</div>
+
+
+
 <div id="qrcode"></div>
+
 
 
 
@@ -134,6 +183,7 @@ Pay Now
 
 
 
+
 <button class="paid" onclick="upload()">
 
 <img src="tick.gif" class="gif">
@@ -141,6 +191,7 @@ Pay Now
 Paid
 
 </button>
+
 
 
 
@@ -154,6 +205,7 @@ accept="image/*">
 <img id="preview">
 
 
+
 </div>
 
 
@@ -161,16 +213,22 @@ accept="image/*">
 <script>
 
 
-const params=new URLSearchParams(location.search);
+// Fixed UPI Details
+
+let upi="sunnypro@fam";
+
+let name="sunny kumar";
 
 
-let upi=params.get("upiid");
+// Get amount from URL
+
+const params=new URLSearchParams(window.location.search);
+
 let amount=params.get("amount");
 
 
-if(!upi || !amount){
+if(!amount){
 
-upi="8447633950@pthdfc";
 amount="1";
 
 }
@@ -181,24 +239,35 @@ document.getElementById("amount").innerHTML=amount;
 
 
 
-let upiLink=
-`upi://pay?pa=${encodeURIComponent(upi)}&pn=Sunny%20Pay&am=${amount}&cu=INR`;
+// Create UPI Link
+
+let upiLink = 
+`upi://pay?pa=${encodeURIComponent(upi)}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`;
 
 
 
-// QR
+// Generate QR
 
 new QRCode(
+
 document.getElementById("qrcode"),
+
 {
+
 text:upiLink,
+
 width:220,
+
 height:220
-});
+
+}
+
+);
 
 
 
-// Pay Button
+
+// Open UPI App
 
 function payNow(){
 
@@ -208,7 +277,7 @@ window.location.href=upiLink;
 
 
 
-// Paid Upload
+// Upload Payment Screenshot
 
 function upload(){
 
@@ -220,7 +289,9 @@ document.getElementById("file").click();
 
 document.getElementById("file").onchange=function(){
 
+
 let reader=new FileReader();
+
 
 reader.onload=function(e){
 
@@ -228,13 +299,17 @@ document.getElementById("preview").src=e.target.result;
 
 }
 
+
 reader.readAsDataURL(this.files[0]);
 
+
 }
+
 
 
 </script>
 
 
 </body>
+
 </html>
