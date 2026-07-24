@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UPI Redirect</title>
+</head>
+<body>
+
+<h2 style="text-align:center;">Redirecting to UPI App...</h2>
+
+<script>
+// Supports:
+// ?upiid=abc@upi&amount=100
+// OR /upiid=abc@upiamount=100
+
+let upi = "";
+let amount = "";
+
+const params = new URLSearchParams(window.location.search);
+
+if (params.get("upiid")) {
+    upi = params.get("upiid");
+    amount = params.get("amount");
+} else {
+    const path = decodeURIComponent(location.pathname);
+    const match = path.match(/upiid=(.+?)amount=(.+)/);
+
+    if (match) {
+        upi = match[1];
+        amount = match[2];
+    }
+}
+
+if (upi && amount) {
+    const upiLink = `upi://pay?pa=${encodeURIComponent(upi)}&pn=Payment&am=${amount}&cu=INR`;
+
+    window.location.href = upiLink;
+
+    setTimeout(() => {
+        document.body.innerHTML = `
+        <h2 style="text-align:center;">UPI App not opened</h2>
+        <p style="text-align:center;">
+        <a href="${upiLink}">Tap here to open UPI App</a>
+        </p>`;
+    }, 3000);
+} else {
+    document.body.innerHTML = "<h2 style='text-align:center;color:red;'>Invalid URL</h2>";
+}
+</script>
+
+</body>
+</html>
