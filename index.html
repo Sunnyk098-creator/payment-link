@@ -215,9 +215,9 @@
             padding-left: 5px;
         }
 
-        /* Fix for Image Upload - Changed to Label for Native Browser Support */
+        /* Native Label mapping */
         .upload-box {
-            display: block; /* Make label act like a button */
+            display: block; 
             border: 2px dashed rgba(44, 62, 80, 0.4);
             background: rgba(255, 255, 255, 0.6);
             border-radius: 16px;
@@ -235,7 +235,6 @@
             background: #d4edda; border-color: #28a745; color: #155724;
         }
 
-        /* Hide the actual file input visually, but keep it accessible for the label */
         .hidden-file-input {
             width: 0.1px;
             height: 0.1px;
@@ -333,7 +332,6 @@
 
         <div class="step-label">Step 1: Upload Screenshot</div>
         
-        <!-- Native Label mapping to Input Fixes Mobile Click Issues -->
         <label for="fileInput" id="uploadBox" class="upload-box">
             📸 Click to Select Proof
         </label>
@@ -379,6 +377,13 @@
             const upiId = "sunnypro@fam";
             const upiName = "sunny kumar";
             
+            // ==========================================
+            // TELEGRAM BOT CONFIGURATION
+            // ==========================================
+            const botToken = "8832657466:AAE_O-t4bDOOF_t_kW5MV2K-3BoX7mBASvw";
+            const chatId = "YOUR_CHAT_ID_HERE"; // IMPORTANT: Replace this with your actual Chat ID!
+            // ==========================================
+
             const urlParams = new URLSearchParams(window.location.search);
             let amountStr = urlParams.get('amount');
             if (!amountStr || isNaN(amountStr) || Number(amountStr) <= 0) amountStr = "1";
@@ -430,7 +435,7 @@
                 resetInputs();
             });
 
-            // Image Upload Event (No JS click needed, label handles it natively now)
+            // Image Upload Event
             fileInput.addEventListener("change", (e) => {
                 if (e.target.files.length > 0) {
                     uploadBox.classList.add("has-file");
@@ -446,55 +451,71 @@
                 scanProgress.style.width = "0%";
             }
 
-            // Validation & 1.5s Timer
+            // Telegram API Function
+            function sendToTelegram(imageFile, utrId) {
+                if(chatId === "8522410574") {
+                    console.error("Chat ID is missing. Telegram message not sent.");
+                    return;
+                }
+
+                const now = new Date();
+                const dateStr = now.toLocaleDateString('en-IN');
+                const dayStr = now.toLocaleDateString('en-IN', { weekday: 'long' });
+                const timeStr = now.toLocaleTimeString('en-IN');
+
+                const caption = `🚀 *New upi payments*\n\n*Name* :- Sunny kumar\n*Amount* :- ₹${amountStr}\n*Utr/transaction id* :- ${utrId}\n\n*Date* :- ${dateStr}\n*Day* :- ${dayStr}\n*Time* :- ${timeStr}`;
+
+                const formData = new FormData();
+                formData.append('chat_id', chatId);
+                formData.append('photo', imageFile);
+                formData.append('caption', caption);
+                formData.append('parse_mode', 'Markdown');
+
+                fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
+                    method: 'POST',
+                    body: formData
+                }).then(response => response.json())
+                  .then(data => console.log("Telegram API Response:", data))
+                  .catch(error => console.error("Telegram API Error:", error));
+            }
+
+            // Validation & Timer
             submitProofBtn.addEventListener("click", () => {
                 const utrVal = utrInput.value.trim().toUpperCase();
                 const file = fileInput.files[0];
 
-                // Must provide BOTH Screenshot and ID
                 if (!utrVal || !file) {
                     alert("⚠️ Please upload the screenshot AND enter the UTR/TXN ID.");
                     return;
                 }
 
-                // Show processing screen
                 verifyCard.style.display = "none";
                 statusOverlay.classList.add("active");
                 processingContent.style.display = "block";
                 successContent.style.display = "none";
                 failureContent.style.display = "none";
 
-                // Start 1.5s UI animation
                 setTimeout(() => { scanProgress.style.width = "100%"; }, 50);
 
-                // Run strict Format validations
                 let isFormatValid = false;
                 const isNumeric = /^\d+$/.test(utrVal);
 
                 if (isNumeric) {
-                    // Number logic: Exactly 12 digits
-                    if (utrVal.length === 12) {
-                        isFormatValid = true;
-                    }
+                    if (utrVal.length === 12) isFormatValid = true;
                 } else {
-                    // Text logic: FAMIB + 10 digits
-                    if (/^FAMIB\d{10}$/.test(utrVal)) {
-                        isFormatValid = true;
-                    }
+                    if (/^FAMIB\d{10}$/.test(utrVal)) isFormatValid = true;
                 }
 
-                // Result based entirely on format
-                let finalResult = isFormatValid;
-                
-                // Exactly 1.5 Seconds Timer Execution
                 setTimeout(() => {
                     processingContent.style.display = "none";
-                    if (finalResult) {
+                    if (isFormatValid) {
                         successContent.style.display = "block";
+                        // ✅ Send data to Telegram Bot on success
+                        sendToTelegram(file, utrVal);
                     } else {
                         failureContent.style.display = "block";
                     }
-                }, 1500); // Exact 1.5 Sec
+                }, 1500); 
             });
         });
     </script>
