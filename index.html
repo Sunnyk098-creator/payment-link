@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Secure Payment</title>
     <!-- Google Fonts for Premium Typography -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
     <!-- QRCode.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
@@ -90,13 +90,38 @@
             justify-content: center;
             gap: 6px;
             font-size: 1.25rem;
-            font-weight: 700;
-            color: #2c3e50;
+            font-weight: 800; /* Bolder font for better shine effect */
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
         }
 
+        /* Shine/Glino Effect on Text */
+        .name-text {
+            background: linear-gradient(
+                to right,
+                #2c3e50 20%,
+                #74b9ff 50%,
+                #2c3e50 80%
+            );
+            background-size: 200% auto;
+            color: #2c3e50; /* Fallback */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine 3s linear infinite;
+        }
+
+        @keyframes shine {
+            to {
+                background-position: 200% center;
+            }
+        }
+
+        /* Fixed Blue Tick */
         .badge {
-            width: 22px;
-            height: 22px;
+            width: 18px;
+            height: 18px;
+            object-fit: contain; /* Prevents squishing/stretching */
+            transform: translateY(-1px); /* Slight adjustment to align perfectly with text */
         }
 
         /* Amount Card */
@@ -104,7 +129,7 @@
             background: linear-gradient(135deg, #FDEB71 0%, #F8D800 100%);
             padding: 12px 30px;
             border-radius: 20px;
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: 700;
             color: #333;
             box-shadow: 0 4px 15px rgba(248, 216, 0, 0.4);
@@ -185,6 +210,7 @@
         .btn-icon {
             width: 24px;
             height: 24px;
+            object-fit: contain;
         }
 
         .btn-pay {
@@ -230,7 +256,6 @@
             align-items: center;
             gap: 6px;
         }
-
     </style>
 </head>
 <body>
@@ -241,7 +266,7 @@
         <div class="header">
             <img src="logo.jpg" alt="Logo" class="logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'80\' height=\'80\'><circle cx=\'40\' cy=\'40\' r=\'40\' fill=\'%23ccc\'/></svg>'">
             <div class="name-container">
-                <span>ꜱᴜɴɴʏ ᴋᴜᴍᴀʀ</span>
+                <span class="name-text">ꜱᴜɴɴʏ ᴋᴜᴍᴀʀ</span>
                 <img src="btick.gif" alt="Verified" class="badge" onerror="this.style.display='none'">
             </div>
         </div>
@@ -307,7 +332,6 @@
             const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(upiName)}&am=${amount}&cu=INR`;
 
             // 3. Generate QR Code
-            // Using CorrectLevel.H (High) so the center logo doesn't break the QR scannability
             new QRCode(document.getElementById("qrcode"), {
                 text: upiUrl,
                 width: 200,
@@ -320,7 +344,6 @@
             // 4. Pay Now Button Logic
             const payBtn = document.getElementById("payBtn");
             payBtn.addEventListener("click", () => {
-                // Open upi://pay app trigger
                 window.location.href = upiUrl;
             });
 
@@ -330,12 +353,10 @@
             const previewContainer = document.getElementById("previewContainer");
             const imagePreview = document.getElementById("imagePreview");
 
-            // Click button to open file picker
             paidBtn.addEventListener("click", () => {
                 fileInput.click();
             });
 
-            // Handle file selection
             fileInput.addEventListener("change", function(event) {
                 const file = event.target.files[0];
                 if (file) {
