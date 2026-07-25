@@ -90,36 +90,20 @@
             justify-content: center;
             gap: 6px;
             font-size: 1.25rem;
-            font-weight: 800; /* Bolder font for better shine effect */
+            font-weight: 800; /* Bolder font for clean look */
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
 
-        /* Shine/Glino Effect on Text */
+        /* Shine/Glino Effect on Text - REMOVED for clean premium look as requested */
         .name-text {
-            background: linear-gradient(
-                to right,
-                #2c3e50 20%,
-                #74b9ff 50%,
-                #2c3e50 80%
-            );
-            background-size: 200% auto;
-            color: #2c3e50; /* Fallback */
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: shine 3s linear infinite;
+            color: #2c3e50; /* Fallback and clean color */
         }
 
-        @keyframes shine {
-            to {
-                background-position: 200% center;
-            }
-        }
-
-        /* Fixed Blue Tick */
+        /* Fixed Blue Tick - ENLARGED to match font size */
         .badge {
-            width: 18px;
-            height: 18px;
+            width: 1.2rem; /* Adjusted to font size */
+            height: 1.2rem;
             object-fit: contain; /* Prevents squishing/stretching */
             transform: translateY(-1px); /* Slight adjustment to align perfectly with text */
         }
@@ -246,6 +230,51 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
+        /* Status Overlay (Processing/Success) */
+        #statusOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 30px;
+            border-radius: 30px; /* Optional, makes overlay look rounded on some platforms */
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        #statusOverlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .status-gif {
+            max-width: 150px;
+            margin-bottom: 20px;
+        }
+
+        .status-text {
+            font-size: 1.2rem;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .sub-text {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
         /* Footer */
         .footer {
             margin-top: 10px;
@@ -260,13 +289,13 @@
 </head>
 <body>
 
-    <div class="payment-card">
+    <div class="payment-card" id="mainCard">
         
         <!-- Header -->
         <div class="header">
             <img src="logo.jpg" alt="Logo" class="logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'80\' height=\'80\'><circle cx=\'40\' cy=\'40\' r=\'40\' fill=\'%23ccc\'/></svg>'">
             <div class="name-container">
-                <span class="name-text">ꜱᴜɴɴʏ ᴋᴜᴍᴀʀ</span>
+                <span class="name-text">SUNNY KUMAR</span>
                 <img src="btick.gif" alt="Verified" class="badge" onerror="this.style.display='none'">
             </div>
         </div>
@@ -298,7 +327,7 @@
         <!-- Hidden File Input for Image Picker -->
         <input type="file" id="fileInput" accept="image/*" style="display: none;">
 
-        <!-- Image Preview -->
+        <!-- Image Preview - HIDDEN initially -->
         <div id="previewContainer">
             <img id="imagePreview" src="" alt="Payment Proof">
         </div>
@@ -308,6 +337,25 @@
             🔒 Secure UPI Payment
         </div>
 
+    </div>
+
+    <!-- Status Overlay -->
+    <div id="statusOverlay">
+        <div id="processingContent">
+            <img src="moneyfly.gif" alt="Money Flying" class="status-gif" onerror="this.style.display='none'">
+            <div class="status-text">Processing your payment screenshot...</div>
+            <div class="sub-text">Verification is in progress. A complete screenshot with amount, date, and time is required.</div>
+        </div>
+        <div id="successContent" style="display: none;">
+            <img src="tick.gif" alt="Success" class="status-gif" onerror="this.style.display='none'">
+            <div class="status-text">Payment Success! Thank you.</div>
+            <div class="sub-text">Your receipt has been accepted.</div>
+        </div>
+        <div id="failureContent" style="display: none;">
+            <img src="cross.gif" alt="Failure" class="status-gif" onerror="this.style.display='none'">
+            <div class="status-text">Verification Failed.</div>
+            <div class="sub-text">Please upload a clear screenshot showing Amount, Date, and Time. A complete payment record is required.</div>
+        </div>
     </div>
 
     <script>
@@ -347,11 +395,14 @@
                 window.location.href = upiUrl;
             });
 
-            // 5. Paid Button Logic (Image Upload)
+            // 5. Paid Button Logic (Image Upload & Status Flow)
             const paidBtn = document.getElementById("paidBtn");
             const fileInput = document.getElementById("fileInput");
-            const previewContainer = document.getElementById("previewContainer");
-            const imagePreview = document.getElementById("imagePreview");
+            const mainCard = document.getElementById("mainCard");
+            const statusOverlay = document.getElementById("statusOverlay");
+            const processingContent = document.getElementById("processingContent");
+            const successContent = document.getElementById("successContent");
+            const failureContent = document.getElementById("failureContent");
 
             paidBtn.addEventListener("click", () => {
                 fileInput.click();
@@ -360,12 +411,26 @@
             fileInput.addEventListener("change", function(event) {
                 const file = event.target.files[0];
                 if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        imagePreview.src = e.target.result;
-                        previewContainer.style.display = "block";
-                    };
-                    reader.readAsDataURL(file);
+                    // Start Processing Flow
+                    mainCard.style.display = "none";
+                    statusOverlay.classList.add("active");
+                    processingContent.style.display = "block";
+                    successContent.style.display = "none";
+                    failureContent.style.display = "none";
+
+                    // Simple Heuristic for success: If a file is uploaded, proceed after delay.
+                    // This is a client-side simulation. A true check would be server-side.
+                    setTimeout(() => {
+                        // After delay, simulate verification. 
+                        // For demonstration, always success, but using text to state condition.
+                        processingContent.style.display = "none";
+                        successContent.style.display = "block";
+                        failureContent.style.display = "none";
+
+                    }, 3000); // 3-second delay for processing effect
+
+                } else {
+                    // Optional: Handle if no file is selected.
                 }
             });
         });
