@@ -1,315 +1,353 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Secure Payment</title>
+    <!-- Google Fonts for Premium Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- QRCode.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-font: 'Poppins', sans-serif;
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
 
-<title>Sunny Pay</title>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--primary-font);
+        }
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Beautiful gradient background (cream, yellow, white) */
+            background: linear-gradient(135deg, #FFFDD0, #FFD700, #FFFFFF);
+            background-size: 200% 200%;
+            animation: gradientAnim 10s ease infinite;
+            padding: 20px;
+            color: #333;
+        }
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+        @keyframes gradientAnim {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
 
-<style>
+        /* Glassmorphism Card */
+        .payment-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 400px;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-body{
-    margin:0;
-    background:#fff2b8;
-    font-family:'Comic Sans MS',cursive;
-}
+        /* Header section */
+        .header {
+            margin-bottom: 20px;
+        }
 
-.card{
+        .logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            animation: float 3s ease-in-out infinite;
+            margin-bottom: 12px;
+        }
 
-    width:90%;
-    max-width:400px;
-    margin:25px auto;
-    background:white;
-    border-radius:35px;
-    padding:25px;
-    text-align:center;
-    box-shadow:0 10px 25px #bbb;
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0px); }
+        }
 
-}
+        .name-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
 
+        .badge {
+            width: 22px;
+            height: 22px;
+        }
 
-.logo{
+        /* Amount Card */
+        .amount-card {
+            background: linear-gradient(135deg, #FDEB71 0%, #F8D800 100%);
+            padding: 12px 30px;
+            border-radius: 20px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+            box-shadow: 0 4px 15px rgba(248, 216, 0, 0.4);
+            margin-bottom: 25px;
+            display: inline-block;
+            border: 2px solid #fff;
+            transition: transform 0.3s ease;
+        }
+        
+        .amount-card:hover {
+            transform: scale(1.05);
+        }
 
-    width:100px;
-    height:100px;
-    border-radius:50%;
-    object-fit:cover;
-    border:5px solid #ffd000;
+        /* QR Code Section */
+        .qr-container {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 24px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05), 0 8px 20px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+            position: relative;
+            display: inline-block;
+        }
 
-}
+        #qrcode {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
+        .qr-center-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 45px;
+            height: 45px;
+            background: #fff;
+            border-radius: 50%;
+            padding: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
 
-h1{
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
 
-    color:#ff6800;
-    font-family:monospace;
+        .btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 10px;
+            border: none;
+            border-radius: 18px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+            color: #333;
+        }
 
-}
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
 
+        .btn:active {
+            transform: translateY(1px);
+        }
 
-.user{
+        .btn-icon {
+            width: 24px;
+            height: 24px;
+        }
 
-    font-size:18px;
-    color:#555;
+        .btn-pay {
+            background: linear-gradient(135deg, #96f2d7, #20c997);
+            border: 1px solid rgba(32, 201, 151, 0.3);
+        }
 
-}
+        .btn-paid {
+            background: linear-gradient(135deg, #ffc9c9, #ff8787);
+            border: 1px solid rgba(255, 135, 135, 0.3);
+        }
 
+        /* Image Preview */
+        #previewContainer {
+            display: none;
+            width: 100%;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.5s ease;
+        }
 
-.amount{
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-    background:#ffe066;
-    padding:12px;
-    border-radius:25px;
-    font-size:26px;
-    font-weight:bold;
+        #imagePreview {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 16px;
+            border: 3px solid #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
 
-}
+        /* Footer */
+        .footer {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #666;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
-
-#qrcode{
-
-    margin:20px auto;
-
-}
-
-
-button{
-
-    width:90%;
-    height:60px;
-    margin:10px;
-
-    border:none;
-    border-radius:30px;
-
-    color:white;
-    font-size:18px;
-    font-weight:bold;
-
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    gap:10px;
-
-}
-
-
-.pay{
-
-    background:#22c55e;
-
-}
-
-
-.paid{
-
-    background:#ff4d8d;
-
-}
-
-
-.gif{
-
-    width:35px;
-    height:35px;
-    object-fit:contain;
-
-}
-
-
-input{
-
-    display:none;
-
-}
-
-
-#preview{
-
-    width:250px;
-    margin-top:15px;
-    border-radius:15px;
-
-}
-
-
-</style>
-
+    </style>
 </head>
-
-
 <body>
 
-
-<div class="card">
-
-
-<img src="logo.jpg" class="logo">
-
-
-<h1>ꜱᴜɴɴʏ ᴋᴜᴍᴀʀ</h1>
-
-
-<div class="user">
-sunny kumar
-</div>
-
-
-<br>
-
-
-<div class="amount">
-
-₹ <span id="amount"></span>
-
-</div>
-
-
-
-<div id="qrcode"></div>
-
-
-
-
-<button class="pay" onclick="payNow()">
-
-<img src="rocket.gif" class="gif">
-
-Pay Now
-
-</button>
-
-
-
-
-<button class="paid" onclick="upload()">
-
-<img src="tick.gif" class="gif">
-
-Paid
-
-</button>
-
-
-
-
-<input 
-type="file"
-id="file"
-accept="image/*">
-
-
-
-<img id="preview">
-
-
-
-</div>
-
-
-
-<script>
-
-
-// Fixed UPI Details
-
-let upi="sunnypro@fam";
-
-let name="sunny kumar";
-
-
-// Get amount from URL
-
-const params=new URLSearchParams(window.location.search);
-
-let amount=params.get("amount");
-
-
-if(!amount){
-
-amount="1";
-
-}
-
-
-
-document.getElementById("amount").innerHTML=amount;
-
-
-
-// Create UPI Link
-
-let upiLink = 
-`upi://pay?pa=${encodeURIComponent(upi)}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`;
-
-
-
-// Generate QR
-
-new QRCode(
-
-document.getElementById("qrcode"),
-
-{
-
-text:upiLink,
-
-width:220,
-
-height:220
-
-}
-
-);
-
-
-
-
-// Open UPI App
-
-function payNow(){
-
-window.location.href=upiLink;
-
-}
-
-
-
-// Upload Payment Screenshot
-
-function upload(){
-
-document.getElementById("file").click();
-
-}
-
-
-
-document.getElementById("file").onchange=function(){
-
-
-let reader=new FileReader();
-
-
-reader.onload=function(e){
-
-document.getElementById("preview").src=e.target.result;
-
-}
-
-
-reader.readAsDataURL(this.files[0]);
-
-
-}
-
-
-
-</script>
-
-
+    <div class="payment-card">
+        
+        <!-- Header -->
+        <div class="header">
+            <img src="logo.jpg" alt="Logo" class="logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'80\' height=\'80\'><circle cx=\'40\' cy=\'40\' r=\'40\' fill=\'%23ccc\'/></svg>'">
+            <div class="name-container">
+                <span>ꜱᴜɴɴʏ ᴋᴜᴍᴀʀ</span>
+                <img src="btick.gif" alt="Verified" class="badge" onerror="this.style.display='none'">
+            </div>
+        </div>
+
+        <!-- Amount -->
+        <div class="amount-card" id="amountDisplay">
+            ₹1
+        </div>
+
+        <!-- QR Code -->
+        <div class="qr-container">
+            <div id="qrcode"></div>
+            <!-- Center Moneybag Icon -->
+            <img src="moneybag.gif" alt="Money Bag" class="qr-center-icon" onerror="this.style.display='none'">
+        </div>
+
+        <!-- Buttons -->
+        <div class="button-group">
+            <button class="btn btn-pay" id="payBtn">
+                <img src="rocket.gif" alt="Rocket" class="btn-icon" onerror="this.style.display='none'">
+                Pay Now
+            </button>
+            <button class="btn btn-paid" id="paidBtn">
+                <img src="tick.gif" alt="Tick" class="btn-icon" onerror="this.style.display='none'">
+                Paid
+            </button>
+        </div>
+
+        <!-- Hidden File Input for Image Picker -->
+        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+
+        <!-- Image Preview -->
+        <div id="previewContainer">
+            <img id="imagePreview" src="" alt="Payment Proof">
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            🔒 Secure UPI Payment
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Configuration
+            const upiId = "sunnypro@fam";
+            const upiName = "sunny kumar";
+            
+            // 1. Get amount from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            let amount = urlParams.get('amount');
+            
+            // If missing or invalid, default to 1
+            if (!amount || isNaN(amount) || Number(amount) <= 0) {
+                amount = "1";
+            }
+            
+            // Display Amount
+            document.getElementById("amountDisplay").innerText = `₹${amount}`;
+
+            // 2. Generate UPI URL
+            const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(upiName)}&am=${amount}&cu=INR`;
+
+            // 3. Generate QR Code
+            // Using CorrectLevel.H (High) so the center logo doesn't break the QR scannability
+            new QRCode(document.getElementById("qrcode"), {
+                text: upiUrl,
+                width: 200,
+                height: 200,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+
+            // 4. Pay Now Button Logic
+            const payBtn = document.getElementById("payBtn");
+            payBtn.addEventListener("click", () => {
+                // Open upi://pay app trigger
+                window.location.href = upiUrl;
+            });
+
+            // 5. Paid Button Logic (Image Upload)
+            const paidBtn = document.getElementById("paidBtn");
+            const fileInput = document.getElementById("fileInput");
+            const previewContainer = document.getElementById("previewContainer");
+            const imagePreview = document.getElementById("imagePreview");
+
+            // Click button to open file picker
+            paidBtn.addEventListener("click", () => {
+                fileInput.click();
+            });
+
+            // Handle file selection
+            fileInput.addEventListener("change", function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        imagePreview.src = e.target.result;
+                        previewContainer.style.display = "block";
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+    </script>
 </body>
-
 </html>
