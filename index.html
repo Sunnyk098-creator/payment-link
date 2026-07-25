@@ -3,296 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Secure Payment</title>
+    <title>Premium Secure Payment</title>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- QRCode.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    
-    <style>
-        :root {
-            --primary-font: 'Poppins', sans-serif;
-            --glass-bg: rgba(255, 255, 255, 0.65);
-            --glass-border: rgba(255, 255, 255, 0.4);
-            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: var(--primary-font);
-        }
-
-        body {
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(135deg, #FFFDD0, #FFD700, #FFFFFF);
-            background-size: 200% 200%;
-            animation: gradientAnim 10s ease infinite;
-            padding: 20px;
-            color: #333;
-        }
-
-        @keyframes gradientAnim {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .payment-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--glass-border);
-            border-radius: 30px;
-            box-shadow: var(--shadow);
-            width: 100%;
-            max-width: 400px;
-            padding: 30px 20px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .header { margin-bottom: 20px; }
-
-        .logo {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #fff;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            animation: float 3s ease-in-out infinite;
-            margin-bottom: 12px;
-        }
-
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
-            100% { transform: translateY(0px); }
-        }
-
-        .name-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            font-size: 1.25rem;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-
-        .name-text { color: #2c3e50; }
-
-        .badge {
-            width: 1.2rem;
-            height: 1.2rem;
-            object-fit: contain;
-            transform: translateY(-1px);
-        }
-
-        .amount-card {
-            background: linear-gradient(135deg, #FDEB71 0%, #F8D800 100%);
-            padding: 12px 30px;
-            border-radius: 20px;
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: #333;
-            box-shadow: 0 4px 15px rgba(248, 216, 0, 0.4);
-            margin-bottom: 25px;
-            display: inline-block;
-            border: 2px solid #fff;
-            transition: transform 0.3s ease;
-        }
-        
-        .amount-card:hover { transform: scale(1.05); }
-
-        .qr-container {
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 24px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.05), 0 8px 20px rgba(0,0,0,0.08);
-            margin-bottom: 30px;
-            position: relative;
-            display: inline-block;
-        }
-
-        #qrcode {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .qr-center-icon {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 45px;
-            height: 45px;
-            background: #fff;
-            border-radius: 50%;
-            padding: 5px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .button-group {
-            display: flex;
-            gap: 15px;
-            width: 100%;
-            margin-bottom: 20px;
-        }
-
-        .btn {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 14px 10px;
-            border: none;
-            border-radius: 18px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-            color: #333;
-        }
-
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-        }
-
-        .btn:active { transform: translateY(1px); }
-        .btn-icon { width: 24px; height: 24px; object-fit: contain; }
-
-        .btn-pay {
-            background: linear-gradient(135deg, #96f2d7, #20c997);
-            border: 1px solid rgba(32, 201, 151, 0.3);
-        }
-
-        .btn-paid {
-            background: linear-gradient(135deg, #ffc9c9, #ff8787);
-            border: 1px solid rgba(255, 135, 135, 0.3);
-        }
-
-        .btn-submit {
-            background: linear-gradient(135deg, #20c997, #12b886);
-            color: #fff;
-            border: none;
-            width: 100%;
-            margin-top: 20px;
-            font-size: 1.1rem;
-            padding: 16px;
-        }
-
-        .btn-back {
-            background: rgba(255, 255, 255, 0.5);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            width: 100%;
-            margin-top: 12px;
-        }
-
-        /* Verification Screen Elements */
-        .step-label {
-            width: 100%;
-            text-align: left;
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: #555;
-            margin-bottom: 8px;
-            margin-top: 15px;
-            padding-left: 5px;
-        }
-
-        /* Native Label mapping */
-        .upload-box {
-            display: block; 
-            border: 2px dashed rgba(44, 62, 80, 0.4);
-            background: rgba(255, 255, 255, 0.6);
-            border-radius: 16px;
-            padding: 20px;
-            cursor: pointer;
-            color: #2c3e50;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            width: 100%;
-            text-align: center;
-        }
-
-        .upload-box:hover { background: rgba(255, 255, 255, 0.9); border-color: #F8D800; }
-        .upload-box.has-file {
-            background: #d4edda; border-color: #28a745; color: #155724;
-        }
-
-        .hidden-file-input {
-            width: 0.1px;
-            height: 0.1px;
-            opacity: 0;
-            overflow: hidden;
-            position: absolute;
-            z-index: -1;
-        }
-
-        .input-field {
-            width: 100%; padding: 16px; border-radius: 16px;
-            border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.8);
-            font-size: 1rem; font-family: var(--primary-font); outline: none;
-            text-align: center; color: #333; transition: all 0.3s ease;
-            font-weight: 600;
-        }
-        .input-field:focus {
-            border-color: #F8D800; box-shadow: 0 0 10px rgba(248, 216, 0, 0.3); background: #fff;
-        }
-
-        /* Status Overlay (Yellow Theme) */
-        #statusOverlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #FDEB71 0%, #F8D800 100%);
-            z-index: 100;
-            justify-content: center; align-items: center; flex-direction: column;
-            text-align: center; padding: 30px;
-        }
-        #statusOverlay.active { display: flex; }
-
-        .status-card {
-            background: rgba(255,255,255,0.85);
-            backdrop-filter: blur(10px);
-            padding: 40px 30px;
-            border-radius: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            width: 90%;
-            max-width: 350px;
-        }
-
-        .status-gif { max-width: 100px; margin-bottom: 20px; }
-        .status-text { font-size: 1.4rem; color: #333; font-weight: 800; margin-bottom: 8px; }
-        .sub-text { font-size: 0.95rem; color: #555; margin-bottom: 20px; line-height: 1.5; font-weight: 600; }
-
-        .progress-bar {
-            width: 100%; height: 8px; background: rgba(0,0,0,0.1); border-radius: 10px; overflow: hidden; margin: 0 auto 15px auto;
-        }
-        .progress-fill { 
-            height: 100%; background: #333; width: 0%; 
-            transition: width 1.5s linear; 
-        }
-        .footer { margin-top: 10px; font-size: 0.85rem; color: #666; font-weight: 600; display: flex; align-items: center; gap: 6px; }
-    </style>
+    <!-- CSS File -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Main Payment Card -->
-    <div class="payment-card" id="mainCard">
+    <!-- 1. Amount Entry Card -->
+    <div class="payment-card" id="amountEntryCard" style="display: none;">
+        <img src="moneyfly.gif" alt="Money Fly" class="entry-gif" onerror="this.src='moneybag.gif'">
+        <div class="entry-title">How much you want to pay?</div>
+        
+        <div class="input-wrapper">
+            <span class="currency-symbol">₹</span>
+            <input type="number" id="customAmountInput" class="custom-amount-input" placeholder="0" min="1" max="10000000">
+        </div>
+        <div class="limit-text">Min: ₹1 | Max: ₹1,00,00,000</div>
+
+        <button class="btn btn-submit" id="proceedToPayBtn">Proceed to Pay</button>
+        <div class="footer">🔒 Secure UPI Payment</div>
+    </div>
+
+    <!-- 2. Main QR Payment Card -->
+    <div class="payment-card" id="mainCard" style="display: none;">
         <div class="header">
             <img src="logo.jpg" alt="Logo" class="logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'80\' height=\'80\'><circle cx=\'40\' cy=\'40\' r=\'40\' fill=\'%23ccc\'/></svg>'">
             <div class="name-container">
@@ -301,7 +38,7 @@
             </div>
         </div>
 
-        <div class="amount-card" id="amountDisplay">₹1</div>
+        <div class="amount-card" id="amountDisplay">₹0</div>
 
         <div class="qr-container">
             <div id="qrcode"></div>
@@ -321,17 +58,16 @@
         <div class="footer">🔒 Secure UPI Payment</div>
     </div>
 
-    <!-- Verification Card (Premium UI) -->
+    <!-- 3. Verification Card -->
     <div class="payment-card" id="verifyCard" style="display: none;">
         <div class="header">
             <div class="name-container" style="margin-bottom: 5px;">
                 <span class="name-text">Verify Payment</span>
             </div>
-            <div style="font-size: 0.85rem; color: #666; font-weight: 600;">Complete both steps to proceed</div>
+            <div style="font-size: 0.85rem; color: #666; font-weight: 500;">Complete both steps to proceed</div>
         </div>
 
         <div class="step-label">Step 1: Upload Screenshot</div>
-        
         <label for="fileInput" id="uploadBox" class="upload-box">
             📸 Click to Select Proof
         </label>
@@ -344,10 +80,10 @@
         <button class="btn btn-back" id="cancelVerifyBtn">Back</button>
     </div>
 
-    <!-- Status Overlay (Yellow Theme) -->
+    <!-- 4. Status Overlay -->
     <div id="statusOverlay">
         <div class="status-card">
-            <!-- Processing State -->
+            <!-- Processing -->
             <div id="processingContent">
                 <img src="moneyfly.gif" alt="Processing" class="status-gif" onerror="this.src='rocket.gif'">
                 <div class="status-text">Verifying Payment</div>
@@ -355,164 +91,24 @@
                 <div class="progress-bar"><div class="progress-fill" id="scanProgress"></div></div>
             </div>
 
-            <!-- Success State -->
+            <!-- Success -->
             <div id="successContent" style="display: none;">
                 <img src="tick.gif" alt="Success" class="status-gif">
                 <div class="status-text" style="color: #20c997;">Payment Successful</div>
                 <div class="sub-text">Thank you! Your transaction has been verified.</div>
             </div>
 
-            <!-- Failure State -->
+            <!-- Failure -->
             <div id="failureContent" style="display: none;">
-                <div style="font-size: 50px; margin-bottom:10px;">❌</div>
+                <div style="font-size: 55px; margin-bottom:10px;">❌</div>
                 <div class="status-text" style="color: #ff6b6b;">Verification Failed</div>
                 <div class="sub-text" style="font-weight: 700; color: #d63031;">Fake Payment Detected!</div>
-                <button class="btn btn-paid" id="retryBtn" style="margin-top: 15px; width: 100%;">Try Again</button>
+                <button class="btn btn-paid" id="retryBtn" style="margin-top: 20px; width: 100%;">Try Again</button>
             </div>
         </div>
     </div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const upiId = "sunnypro@fam";
-            const upiName = "sunny kumar";
-            
-            // ==========================================
-            // TELEGRAM BOT CONFIGURATION
-            // ==========================================
-            const botToken = "8832657466:AAE_O-t4bDOOF_t_kW5MV2K-3BoX7mBASvw";
-            const chatId = "8522410574"; // Updated with provided ID
-            // ==========================================
-
-            const urlParams = new URLSearchParams(window.location.search);
-            let amountStr = urlParams.get('amount');
-            if (!amountStr || isNaN(amountStr) || Number(amountStr) <= 0) amountStr = "1";
-            
-            document.getElementById("amountDisplay").innerText = `₹${amountStr}`;
-
-            const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(upiName)}&am=${amountStr}&cu=INR`;
-
-            new QRCode(document.getElementById("qrcode"), {
-                text: upiUrl,
-                width: 200, height: 200,
-                colorDark : "#000000", colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.H
-            });
-
-            // UI Elements
-            const mainCard = document.getElementById("mainCard");
-            const verifyCard = document.getElementById("verifyCard");
-            const statusOverlay = document.getElementById("statusOverlay");
-            const payBtn = document.getElementById("payBtn");
-            const paidBtn = document.getElementById("paidBtn");
-            const cancelVerifyBtn = document.getElementById("cancelVerifyBtn");
-            const submitProofBtn = document.getElementById("submitProofBtn");
-            const retryBtn = document.getElementById("retryBtn");
-            const uploadBox = document.getElementById("uploadBox");
-            const fileInput = document.getElementById("fileInput");
-            const utrInput = document.getElementById("utrInput");
-            
-            // Status Content
-            const processingContent = document.getElementById("processingContent");
-            const successContent = document.getElementById("successContent");
-            const failureContent = document.getElementById("failureContent");
-            const scanProgress = document.getElementById("scanProgress");
-
-            // Navigation
-            payBtn.addEventListener("click", () => window.location.href = upiUrl);
-            paidBtn.addEventListener("click", () => {
-                mainCard.style.display = "none";
-                verifyCard.style.display = "flex";
-            });
-            cancelVerifyBtn.addEventListener("click", () => {
-                verifyCard.style.display = "none";
-                mainCard.style.display = "flex";
-                resetInputs();
-            });
-            retryBtn.addEventListener("click", () => {
-                statusOverlay.classList.remove("active");
-                verifyCard.style.display = "flex";
-                resetInputs();
-            });
-
-            // Image Upload Event
-            fileInput.addEventListener("change", (e) => {
-                if (e.target.files.length > 0) {
-                    uploadBox.classList.add("has-file");
-                    uploadBox.innerText = "✅ Screenshot Attached";
-                }
-            });
-
-            function resetInputs() {
-                fileInput.value = "";
-                utrInput.value = "";
-                uploadBox.classList.remove("has-file");
-                uploadBox.innerText = "📸 Click to Select Proof";
-                scanProgress.style.width = "0%";
-            }
-
-            // Telegram API Function
-            function sendToTelegram(imageFile, utrId) {
-                const now = new Date();
-                const dateStr = now.toLocaleDateString('en-IN');
-                const dayStr = now.toLocaleDateString('en-IN', { weekday: 'long' });
-                const timeStr = now.toLocaleTimeString('en-IN');
-
-                const caption = `🚀 *New upi payments*\n\n*Name* :- Sunny kumar\n*Amount* :- ₹${amountStr}\n*Utr/transaction id* :- ${utrId}\n\n*Date* :- ${dateStr}\n*Day* :- ${dayStr}\n*Time* :- ${timeStr}`;
-
-                const formData = new FormData();
-                formData.append('chat_id', chatId);
-                formData.append('photo', imageFile);
-                formData.append('caption', caption);
-                formData.append('parse_mode', 'Markdown');
-
-                fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, {
-                    method: 'POST',
-                    body: formData
-                }).then(response => response.json())
-                  .then(data => console.log("Telegram API Response:", data))
-                  .catch(error => console.error("Telegram API Error:", error));
-            }
-
-            // Validation & Timer
-            submitProofBtn.addEventListener("click", () => {
-                const utrVal = utrInput.value.trim().toUpperCase();
-                const file = fileInput.files[0];
-
-                if (!utrVal || !file) {
-                    alert("⚠️ Please upload the screenshot AND enter the UTR/TXN ID.");
-                    return;
-                }
-
-                verifyCard.style.display = "none";
-                statusOverlay.classList.add("active");
-                processingContent.style.display = "block";
-                successContent.style.display = "none";
-                failureContent.style.display = "none";
-
-                setTimeout(() => { scanProgress.style.width = "100%"; }, 50);
-
-                let isFormatValid = false;
-                const isNumeric = /^\d+$/.test(utrVal);
-
-                if (isNumeric) {
-                    if (utrVal.length === 12) isFormatValid = true;
-                } else {
-                    if (/^FAMIB\d{10}$/.test(utrVal)) isFormatValid = true;
-                }
-
-                setTimeout(() => {
-                    processingContent.style.display = "none";
-                    if (isFormatValid) {
-                        successContent.style.display = "block";
-                        // ✅ Send data to Telegram Bot on success
-                        sendToTelegram(file, utrVal);
-                    } else {
-                        failureContent.style.display = "block";
-                    }
-                }, 1500); 
-            });
-        });
-    </script>
+    <!-- JS Script -->
+    <script src="script.js"></script>
 </body>
 </html>
