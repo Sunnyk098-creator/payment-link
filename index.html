@@ -9,7 +9,7 @@
     <!-- QRCode.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- Tesseract.js CDN for Image Reading (OCR) -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
     
     <style>
         :root {
@@ -302,7 +302,7 @@
         <div id="processingContent">
             <img src="moneyfly.gif" alt="Processing" class="status-gif" onerror="this.src='rocket.gif'">
             <div class="status-text">Processing Payment...</div>
-            <div class="sub-text" id="scanText">Scanning screenshot for details...</div>
+            <div class="sub-text" id="scanText">Initializing scanner...</div>
             <div class="progress-bar"><div class="progress-fill" id="scanProgress"></div></div>
         </div>
 
@@ -315,10 +315,9 @@
 
         <!-- 3. Failure State -->
         <div id="failureContent" style="display: none;">
-            <!-- Using rocket or cross if available -->
             <div style="font-size: 50px; margin-bottom:10px;">❌</div>
             <div class="status-text" style="color: #ff6b6b;">Verification Failed</div>
-            <div class="sub-text">We couldn't read the correct Amount, Date or Time from the screenshot. Please upload a clear receipt.</div>
+            <div class="sub-text" id="errorMsg">We couldn't verify the amount or time from the screenshot. Please upload a clear receipt.</div>
             <button class="btn btn-paid" id="retryBtn" style="margin-top: 15px; width: 200px;">Try Again</button>
         </div>
 
@@ -364,66 +363,76 @@
             const scanProgress = document.getElementById("scanProgress");
             const scanText = document.getElementById("scanText");
             const retryBtn = document.getElementById("retryBtn");
+            const errorMsg = document.getElementById("errorMsg");
 
             paidBtn.addEventListener("click", () => { fileInput.click(); });
 
             retryBtn.addEventListener("click", () => {
                 statusOverlay.classList.remove("active");
                 mainCard.style.display = "flex";
-                fileInput.value = ""; // reset file input
+                fileInput.value = ""; 
             });
 
-            fileInput.addEventListener("change", async function(event) {
+            fileInput.addEventListener("change", function(event) {
                 const file = event.target.files[0];
                 if (!file) return;
 
-                // Show processing screen
+                // Reset UI & Show processing screen
                 mainCard.style.display = "none";
                 statusOverlay.classList.add("active");
                 processingContent.style.display = "block";
                 successContent.style.display = "none";
                 failureContent.style.display = "none";
-                scanProgress.style.width = "10%";
+                scanProgress.style.width = "5%";
+                scanText.innerText = "Initializing scanner...";
 
-                try {
-                    // Use Tesseract to read image text
-                    const worker = Tesseract.createWorker({
+                const targetAmount = parseFloat(amountStr);
+
+                // Run Tesseract Verification
+                Tesseract.recognize(
+                    file,
+                    'eng',
+                    {
                         logger: m => {
                             if (m.status === 'recognizing text') {
                                 let progress = Math.round(m.progress * 100);
-                                scanProgress.style.width = Math.max(10, progress) + "%";
-                                scanText.innerText = `Analyzing text... ${progress}%`;
+                                scanProgress.style.width = Math.max(5, progress) + "%";
+                                scanText.innerText = `Analyzing receipt... ${progress}%`;
+                            } else {
+                                scanText.innerText = `Loading scanner...`;
                             }
                         }
-                    });
+                    }
+                ).then(({ data: { text } }) => {
+                    const lowerText = text.toLowerCase();
+                    console.log("Extracted OCR Text:\n", lowerText);
 
-                    const result = await Tesseract.recognize(file, 'eng');
-                    const text = result.data.text.toLowerCase();
-                    console.log("Scanned Text:", text); // Log text in console for debugging
+                    // 1. Extract ALL numbers from the text (supports formats like 2.5, 100, 15.50)
+                    const extractedNumbers = lowerText.match(/\d+(\.\d+)?/g) || [];
+                    
+                    // Check if the exact numeric amount is anywhere in the array of numbers
+                    const hasAmount = extractedNumbers.some(num => parseFloat(num) === targetAmount);
 
-                    // Validation Logic
-                    // 1. Check if the exact amount is in the screenshot
-                    const hasAmount = text.includes(amountStr) || text.includes(amountStr + ".00");
+                    // 2. Look for ANY sign of Date, Time, UTR, or TXN ID (Matches Dark Mode screenshots well)
+                    const hasDate = /(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|202\d)/.test(lowerText);
+                    const hasTime = /(\d{1,2}:\d{2}|am|pm)/.test(lowerText);
+                    const hasTxnKeywords = /(utr|txn|id|ref|received|successful)/.test(lowerText);
 
-                    // 2. Check for Date or Time format patterns
-                    // Matches formats like 12:30, AM, PM, 2023, 2024, or slashes like 12/04
-                    const hasTime = /[0-9]{1,2}:[0-9]{2}/.test(text) || text.includes('am') || text.includes('pm');
-                    const hasDate = text.includes('202') || /(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/.test(text) || /[0-9]{1,2}\/[0-9]{1,2}/.test(text);
-
-                    // Decision
                     processingContent.style.display = "none";
 
-                    if (hasAmount && (hasTime || hasDate)) {
+                    // Decision Logic: Requires Amount + (Date OR Time OR Transaction Keyword)
+                    if (hasAmount && (hasDate || hasTime || hasTxnKeywords)) {
                         successContent.style.display = "block";
                     } else {
+                        errorMsg.innerText = "We couldn't find matching amount (₹"+amountStr+") or receipt details. Please try uploading again.";
                         failureContent.style.display = "block";
                     }
-
-                } catch (error) {
-                    console.error("OCR Error:", error);
+                }).catch(err => {
+                    console.error("Scanner Error:", err);
                     processingContent.style.display = "none";
+                    errorMsg.innerText = "Scanner failed to initialize. Please check your internet connection.";
                     failureContent.style.display = "block";
-                }
+                });
             });
         });
     </script>
