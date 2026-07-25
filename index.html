@@ -8,8 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
     <!-- QRCode.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- Tesseract.js CDN for Image Reading (OCR) -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
+    <!-- Tesseract.js v5 CDN (Fixed for Initialization Errors) -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     
     <style>
         :root {
@@ -302,7 +302,7 @@
         <div id="processingContent">
             <img src="moneyfly.gif" alt="Processing" class="status-gif" onerror="this.src='rocket.gif'">
             <div class="status-text">Processing Payment...</div>
-            <div class="sub-text" id="scanText">Initializing scanner...</div>
+            <div class="sub-text" id="scanText">Connecting to scanner...</div>
             <div class="progress-bar"><div class="progress-fill" id="scanProgress"></div></div>
         </div>
 
@@ -373,7 +373,7 @@
                 fileInput.value = ""; 
             });
 
-            fileInput.addEventListener("change", function(event) {
+            fileInput.addEventListener("change", async function(event) {
                 const file = event.target.files[0];
                 if (!file) return;
 
@@ -384,27 +384,29 @@
                 successContent.style.display = "none";
                 failureContent.style.display = "none";
                 scanProgress.style.width = "5%";
-                scanText.innerText = "Initializing scanner...";
+                scanText.innerText = "Connecting to scanner...";
 
                 const targetAmount = parseFloat(amountStr);
 
-                // Run Tesseract Verification
-                Tesseract.recognize(
-                    file,
-                    'eng',
-                    {
-                        logger: m => {
-                            if (m.status === 'recognizing text') {
-                                let progress = Math.round(m.progress * 100);
-                                scanProgress.style.width = Math.max(5, progress) + "%";
-                                scanText.innerText = `Analyzing receipt... ${progress}%`;
-                            } else {
-                                scanText.innerText = `Loading scanner...`;
+                try {
+                    // Start OCR using v5 syntax
+                    const result = await Tesseract.recognize(
+                        file,
+                        'eng',
+                        {
+                            logger: m => {
+                                if (m.status === 'recognizing text') {
+                                    let progress = Math.round(m.progress * 100);
+                                    scanProgress.style.width = Math.max(10, progress) + "%";
+                                    scanText.innerText = `Scanning receipt... ${progress}%`;
+                                } else if (m.status.includes('downloading') || m.status.includes('loading')) {
+                                    scanText.innerText = `Preparing scanner...`;
+                                }
                             }
                         }
-                    }
-                ).then(({ data: { text } }) => {
-                    const lowerText = text.toLowerCase();
+                    );
+
+                    const lowerText = result.data.text.toLowerCase();
                     console.log("Extracted OCR Text:\n", lowerText);
 
                     // 1. Extract ALL numbers from the text (supports formats like 2.5, 100, 15.50)
@@ -413,26 +415,27 @@
                     // Check if the exact numeric amount is anywhere in the array of numbers
                     const hasAmount = extractedNumbers.some(num => parseFloat(num) === targetAmount);
 
-                    // 2. Look for ANY sign of Date, Time, UTR, or TXN ID (Matches Dark Mode screenshots well)
+                    // 2. Look for ANY sign of Date, Time, UTR, or TXN ID
                     const hasDate = /(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|202\d)/.test(lowerText);
                     const hasTime = /(\d{1,2}:\d{2}|am|pm)/.test(lowerText);
                     const hasTxnKeywords = /(utr|txn|id|ref|received|successful)/.test(lowerText);
 
                     processingContent.style.display = "none";
 
-                    // Decision Logic: Requires Amount + (Date OR Time OR Transaction Keyword)
+                    // Decision Logic
                     if (hasAmount && (hasDate || hasTime || hasTxnKeywords)) {
                         successContent.style.display = "block";
                     } else {
                         errorMsg.innerText = "We couldn't find matching amount (₹"+amountStr+") or receipt details. Please try uploading again.";
                         failureContent.style.display = "block";
                     }
-                }).catch(err => {
+
+                } catch (err) {
                     console.error("Scanner Error:", err);
                     processingContent.style.display = "none";
-                    errorMsg.innerText = "Scanner failed to initialize. Please check your internet connection.";
+                    errorMsg.innerText = "Scanner initialization blocked by browser or connection. Please try again on a stable network.";
                     failureContent.style.display = "block";
-                });
+                }
             });
         });
     </script>
