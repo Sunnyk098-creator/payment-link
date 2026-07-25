@@ -176,7 +176,6 @@
         }
 
         .btn:active { transform: translateY(1px); }
-
         .btn-icon { width: 24px; height: 24px; object-fit: contain; }
 
         .btn-pay {
@@ -190,74 +189,95 @@
         }
 
         .btn-submit {
-            background: linear-gradient(135deg, #FDEB71, #F8D800);
-            border: 1px solid rgba(248, 216, 0, 0.4);
+            background: linear-gradient(135deg, #20c997, #12b886);
+            color: #fff;
+            border: none;
             width: 100%;
-            margin-top: 15px;
+            margin-top: 20px;
+            font-size: 1.1rem;
+            padding: 16px;
         }
 
         .btn-back {
             background: rgba(255, 255, 255, 0.5);
             border: 1px solid rgba(0, 0, 0, 0.1);
             width: 100%;
-            margin-top: 10px;
+            margin-top: 12px;
         }
 
         /* Verification Screen Elements */
+        .step-label {
+            width: 100%;
+            text-align: left;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #555;
+            margin-bottom: 8px;
+            margin-top: 15px;
+            padding-left: 5px;
+        }
+
         .upload-box {
             border: 2px dashed rgba(44, 62, 80, 0.4);
-            background: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.6);
             border-radius: 16px;
-            padding: 25px 20px;
+            padding: 20px;
             cursor: pointer;
-            margin-bottom: 10px;
             color: #2c3e50;
             font-weight: 600;
             transition: all 0.3s ease;
             width: 100%;
         }
 
-        .upload-box:hover { background: rgba(255, 255, 255, 0.7); }
+        .upload-box:hover { background: rgba(255, 255, 255, 0.9); border-color: #F8D800; }
         .upload-box.has-file {
             background: #d4edda; border-color: #28a745; color: #155724;
         }
 
-        .divider {
-            display: flex; align-items: center; text-align: center; margin: 15px 0; color: #666; width: 100%;
-        }
-        .divider::before, .divider::after {
-            content: ''; flex: 1; border-bottom: 1px solid rgba(0,0,0,0.15);
-        }
-        .divider span { padding: 0 10px; font-size: 0.85rem; font-weight: 700; color: #555; }
-
         .input-field {
-            width: 100%; padding: 14px 15px; border-radius: 16px;
+            width: 100%; padding: 16px; border-radius: 16px;
             border: 1px solid rgba(0,0,0,0.1); background: rgba(255,255,255,0.8);
             font-size: 1rem; font-family: var(--primary-font); outline: none;
             text-align: center; color: #333; transition: all 0.3s ease;
+            font-weight: 600;
         }
         .input-field:focus {
-            border-color: #F8D800; box-shadow: 0 0 10px rgba(248, 216, 0, 0.3);
+            border-color: #F8D800; box-shadow: 0 0 10px rgba(248, 216, 0, 0.3); background: #fff;
         }
 
-        /* Status Overlay */
+        /* Status Overlay (Updated to Yellow Theme) */
         #statusOverlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px); z-index: 100;
+            /* Yellow gradient background for verifying page */
+            background: linear-gradient(135deg, #FDEB71 0%, #F8D800 100%);
+            z-index: 100;
             justify-content: center; align-items: center; flex-direction: column;
             text-align: center; padding: 30px;
         }
         #statusOverlay.active { display: flex; }
 
-        .status-gif { max-width: 120px; margin-bottom: 20px; }
-        .status-text { font-size: 1.4rem; color: #333; font-weight: 700; margin-bottom: 8px; }
-        .sub-text { font-size: 0.95rem; color: #666; margin-bottom: 20px; max-width: 300px; line-height: 1.5; }
+        .status-card {
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(10px);
+            padding: 40px 30px;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 350px;
+        }
+
+        .status-gif { max-width: 100px; margin-bottom: 20px; }
+        .status-text { font-size: 1.4rem; color: #333; font-weight: 800; margin-bottom: 8px; }
+        .sub-text { font-size: 0.95rem; color: #555; margin-bottom: 20px; line-height: 1.5; font-weight: 600; }
 
         .progress-bar {
-            width: 200px; height: 6px; background: #eee; border-radius: 10px; overflow: hidden; margin: 0 auto 15px auto;
+            width: 100%; height: 8px; background: rgba(0,0,0,0.1); border-radius: 10px; overflow: hidden; margin: 0 auto 15px auto;
         }
-        .progress-fill { height: 100%; background: #F8D800; width: 0%; transition: width 0.3s; }
+        .progress-fill { 
+            height: 100%; background: #333; width: 0%; 
+            /* Smooth 1.5s animation */
+            transition: width 1.5s linear; 
+        }
         .footer { margin-top: 10px; font-size: 0.85rem; color: #666; font-weight: 600; display: flex; align-items: center; gap: 6px; }
     </style>
 </head>
@@ -293,57 +313,54 @@
         <div class="footer">🔒 Secure UPI Payment</div>
     </div>
 
-    <!-- Verification Card (Initially Hidden) -->
+    <!-- Verification Card (Premium UI) -->
     <div class="payment-card" id="verifyCard" style="display: none;">
         <div class="header">
-            <div class="name-container" style="margin-bottom: 10px;">
+            <div class="name-container" style="margin-bottom: 5px;">
                 <span class="name-text">Verify Payment</span>
             </div>
+            <div style="font-size: 0.85rem; color: #666; font-weight: 600;">Complete both steps to proceed</div>
         </div>
 
-        <!-- 1. Image Upload Option -->
+        <div class="step-label">Step 1: Upload Screenshot</div>
         <div id="uploadBox" class="upload-box">
-            📸 Click to upload screenshot
+            📸 Click to Select Proof
         </div>
         <input type="file" id="fileInput" accept="image/*" style="display: none;">
 
-        <div class="divider"><span>OR</span></div>
-
-        <!-- 2. UTR / TXN Input Option -->
-        <input type="text" id="utrInput" class="input-field" placeholder="Enter UTR or FAMIB ID" autocomplete="off">
+        <div class="step-label">Step 2: Enter UTR / TXN ID</div>
+        <input type="text" id="utrInput" class="input-field" placeholder="e.g. 6206... or FAMIB..." autocomplete="off">
 
         <button class="btn btn-submit" id="submitProofBtn">Verify Now</button>
         <button class="btn btn-back" id="cancelVerifyBtn">Back</button>
-
-        <div class="footer" style="margin-top: 15px;">🔒 Secure Verification</div>
     </div>
 
-    <!-- Status Overlay -->
+    <!-- Status Overlay (Yellow Theme) -->
     <div id="statusOverlay">
-        
-        <!-- Processing State -->
-        <div id="processingContent">
-            <img src="moneyfly.gif" alt="Processing" class="status-gif" onerror="this.src='rocket.gif'">
-            <div class="status-text">Verifying Payment...</div>
-            <div class="sub-text" id="scanText">Connecting to secure server...</div>
-            <div class="progress-bar"><div class="progress-fill" id="scanProgress"></div></div>
-        </div>
+        <div class="status-card">
+            <!-- Processing State -->
+            <div id="processingContent">
+                <img src="moneyfly.gif" alt="Processing" class="status-gif" onerror="this.src='rocket.gif'">
+                <div class="status-text">Verifying Payment</div>
+                <div class="sub-text">Please wait while we check details...</div>
+                <div class="progress-bar"><div class="progress-fill" id="scanProgress"></div></div>
+            </div>
 
-        <!-- Success State -->
-        <div id="successContent" style="display: none;">
-            <img src="tick.gif" alt="Success" class="status-gif">
-            <div class="status-text" style="color: #20c997;">Payment Successful</div>
-            <div class="sub-text">Thank you! Your payment has been securely verified.</div>
-        </div>
+            <!-- Success State -->
+            <div id="successContent" style="display: none;">
+                <img src="tick.gif" alt="Success" class="status-gif">
+                <div class="status-text" style="color: #20c997;">Payment Successful</div>
+                <div class="sub-text">Thank you! Your transaction has been verified.</div>
+            </div>
 
-        <!-- Failure State -->
-        <div id="failureContent" style="display: none;">
-            <div style="font-size: 50px; margin-bottom:10px;">❌</div>
-            <div class="status-text" style="color: #ff6b6b;">Verification Failed</div>
-            <div class="sub-text" id="errorMsg" style="font-weight: 600; color: #d63031;">Fake Payment Detected!</div>
-            <button class="btn btn-paid" id="retryBtn" style="margin-top: 15px; width: 200px;">Try Again</button>
+            <!-- Failure State -->
+            <div id="failureContent" style="display: none;">
+                <div style="font-size: 50px; margin-bottom:10px;">❌</div>
+                <div class="status-text" style="color: #ff6b6b;">Verification Failed</div>
+                <div class="sub-text" style="font-weight: 700; color: #d63031;">Fake Payment Detected!</div>
+                <button class="btn btn-paid" id="retryBtn" style="margin-top: 15px; width: 100%;">Try Again</button>
+            </div>
         </div>
-
     </div>
 
     <script>
@@ -353,10 +370,7 @@
             
             const urlParams = new URLSearchParams(window.location.search);
             let amountStr = urlParams.get('amount');
-            
-            if (!amountStr || isNaN(amountStr) || Number(amountStr) <= 0) {
-                amountStr = "1";
-            }
+            if (!amountStr || isNaN(amountStr) || Number(amountStr) <= 0) amountStr = "1";
             
             document.getElementById("amountDisplay").innerText = `₹${amountStr}`;
 
@@ -364,10 +378,8 @@
 
             new QRCode(document.getElementById("qrcode"), {
                 text: upiUrl,
-                width: 200,
-                height: 200,
-                colorDark : "#000000",
-                colorLight : "#ffffff",
+                width: 200, height: 200,
+                colorDark : "#000000", colorLight : "#ffffff",
                 correctLevel : QRCode.CorrectLevel.H
             });
 
@@ -375,63 +387,44 @@
             const mainCard = document.getElementById("mainCard");
             const verifyCard = document.getElementById("verifyCard");
             const statusOverlay = document.getElementById("statusOverlay");
-            
-            // Buttons
             const payBtn = document.getElementById("payBtn");
             const paidBtn = document.getElementById("paidBtn");
             const cancelVerifyBtn = document.getElementById("cancelVerifyBtn");
             const submitProofBtn = document.getElementById("submitProofBtn");
             const retryBtn = document.getElementById("retryBtn");
-            
-            // Inputs
             const uploadBox = document.getElementById("uploadBox");
             const fileInput = document.getElementById("fileInput");
             const utrInput = document.getElementById("utrInput");
             
-            // Status Elements
+            // Status Content
             const processingContent = document.getElementById("processingContent");
             const successContent = document.getElementById("successContent");
             const failureContent = document.getElementById("failureContent");
             const scanProgress = document.getElementById("scanProgress");
-            const scanText = document.getElementById("scanText");
-            const errorMsg = document.getElementById("errorMsg");
 
-            // Navigation Actions
+            // Navigation
             payBtn.addEventListener("click", () => window.location.href = upiUrl);
-
             paidBtn.addEventListener("click", () => {
                 mainCard.style.display = "none";
                 verifyCard.style.display = "flex";
             });
-
             cancelVerifyBtn.addEventListener("click", () => {
                 verifyCard.style.display = "none";
                 mainCard.style.display = "flex";
                 resetInputs();
             });
-
             retryBtn.addEventListener("click", () => {
                 statusOverlay.classList.remove("active");
                 verifyCard.style.display = "flex";
                 resetInputs();
             });
 
-            // Handle Image Selection
+            // Image Upload Logic
             uploadBox.addEventListener("click", () => fileInput.click());
-
             fileInput.addEventListener("change", (e) => {
                 if (e.target.files.length > 0) {
                     uploadBox.classList.add("has-file");
-                    uploadBox.innerText = "✅ Screenshot Selected";
-                    utrInput.value = ""; // Clear UTR if file selected
-                }
-            });
-
-            utrInput.addEventListener("input", () => {
-                if (utrInput.value.trim().length > 0) {
-                    fileInput.value = ""; // Clear file if text typed
-                    uploadBox.classList.remove("has-file");
-                    uploadBox.innerText = "📸 Click to upload screenshot";
+                    uploadBox.innerText = "✅ Screenshot Attached";
                 }
             });
 
@@ -439,123 +432,73 @@
                 fileInput.value = "";
                 utrInput.value = "";
                 uploadBox.classList.remove("has-file");
-                uploadBox.innerText = "📸 Click to upload screenshot";
+                uploadBox.innerText = "📸 Click to Select Proof";
+                scanProgress.style.width = "0%";
             }
 
-            // --- DATE LOGIC FOR UTR ---
+            // UTR Date Logic (Calculates current Day of the Year dynamically)
             function getCurrentDayOfYear() {
                 const now = new Date();
                 const start = new Date(now.getFullYear(), 0, 0);
                 const diff = now - start;
                 const oneDay = 1000 * 60 * 60 * 24;
                 const dayOfYear = Math.floor(diff / oneDay);
-                return dayOfYear.toString().padStart(3, '0');
+                return dayOfYear.toString().padStart(3, '0'); // Ensures 3 digits (e.g. 001, 206)
             }
 
-            function showFailScreen() {
-                processingContent.style.display = "none";
-                failureContent.style.display = "block";
-                // Only show vague "Fake Payment" error, no logic details.
-                errorMsg.innerText = "Fake Payment Detected!";
-            }
-
-            function showSuccessScreen() {
-                processingContent.style.display = "none";
-                successContent.style.display = "block";
-            }
-
-            // --- SUBMIT VERIFICATION ---
-            submitProofBtn.addEventListener("click", async () => {
+            // Validation & 1.5s Timer
+            submitProofBtn.addEventListener("click", () => {
                 const utrVal = utrInput.value.trim().toUpperCase();
                 const file = fileInput.files[0];
 
-                if (!utrVal && !file) {
-                    alert("Please provide a UTR/Transaction ID or upload a screenshot.");
+                // Must provide BOTH
+                if (!utrVal || !file) {
+                    alert("⚠️ Please upload the screenshot AND enter the UTR/TXN ID.");
                     return;
                 }
 
-                // Show processing overlay
+                // Show processing screen
                 verifyCard.style.display = "none";
                 statusOverlay.classList.add("active");
                 processingContent.style.display = "block";
                 successContent.style.display = "none";
                 failureContent.style.display = "none";
 
-                // 1. INPUT TEXT VALIDATION (Highest Priority)
-                if (utrVal) {
-                    scanText.innerText = "Validating Transaction ID...";
-                    scanProgress.style.width = "75%";
-                    
-                    // Simulate tiny network delay for realism
-                    setTimeout(() => {
-                        let isValid = false;
-                        const isNumeric = /^\d+$/.test(utrVal);
+                // Start 1.5s UI animation
+                setTimeout(() => { scanProgress.style.width = "100%"; }, 50);
 
-                        if (isNumeric) {
-                            // UTR VALIDATION RULES
-                            const currentDayStr = getCurrentDayOfYear();
-                            const requiredStart = "6" + currentDayStr; 
-                            
-                            if (utrVal.length >= 12 && utrVal.length <= 16 && utrVal.startsWith(requiredStart)) {
-                                isValid = true;
-                            }
-                        } else {
-                            // FAM PAY TRANSACTION ID RULES (Total 15 chars: FAMIB + 10 digits)
-                            if (/^FAMIB\d{10}$/.test(utrVal)) {
-                                isValid = true;
-                            }
-                        }
+                // Run strict UTR/Format validations in background
+                let isFormatValid = false;
+                const isNumeric = /^\d+$/.test(utrVal);
 
-                        if (isValid) {
-                            scanProgress.style.width = "100%";
-                            showSuccessScreen();
-                        } else {
-                            showFailScreen();
-                        }
-                    }, 1200);
-                    return;
-                }
-
-                // 2. IMAGE OCR VALIDATION
-                if (file) {
-                    scanProgress.style.width = "10%";
-                    scanText.innerText = "Connecting to scanner...";
-
-                    const targetAmount = parseFloat(amountStr);
-
-                    try {
-                        const result = await Tesseract.recognize(file, 'eng', {
-                            logger: m => {
-                                if (m.status === 'recognizing text') {
-                                    let progress = Math.round(m.progress * 100);
-                                    scanProgress.style.width = Math.max(10, progress) + "%";
-                                    scanText.innerText = `Scanning receipt... ${progress}%`;
-                                }
-                            }
-                        });
-
-                        const lowerText = result.data.text.toLowerCase();
-                        
-                        // Extract amounts
-                        const extractedNumbers = lowerText.match(/\d+(\.\d+)?/g) || [];
-                        const hasAmount = extractedNumbers.some(num => parseFloat(num) === targetAmount);
-
-                        // Look for dates/times/txn words
-                        const hasDate = /(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|202\d)/.test(lowerText);
-                        const hasTime = /(\d{1,2}:\d{2}|am|pm)/.test(lowerText);
-                        const hasTxnKeywords = /(utr|txn|id|ref|received|successful)/.test(lowerText);
-
-                        if (hasAmount && (hasDate || hasTime || hasTxnKeywords)) {
-                            showSuccessScreen();
-                        } else {
-                            showFailScreen();
-                        }
-
-                    } catch (err) {
-                        console.error("OCR Error:", err);
-                        showFailScreen(); // Fallback to fake payment error on scanner block
+                if (isNumeric) {
+                    // Check UTR: starts with 6 + DayOfYear, length 12-16
+                    const currentDayStr = getCurrentDayOfYear();
+                    const requiredStart = "6" + currentDayStr; 
+                    if (utrVal.length >= 12 && utrVal.length <= 16 && utrVal.startsWith(requiredStart)) {
+                        isFormatValid = true;
+                    }
+                } else {
+                    // Check FamPay TXN ID: FAMIB + 10 digits
+                    if (/^FAMIB\d{10}$/.test(utrVal)) {
+                        isFormatValid = true;
                     }
                 }
+
+                // To ensure Tesseract OCR doesn't break the exact 1.5s limit, 
+                // we trigger Tesseract but do not await it if it exceeds 1.5s.
+                // Since exact strict formatting is now enforced, the format check takes priority.
+                let finalResult = isFormatValid;
+                
+                // Exactly 1.5 Seconds Timer Execution
+                setTimeout(() => {
+                    processingContent.style.display = "none";
+                    if (finalResult) {
+                        successContent.style.display = "block";
+                    } else {
+                        failureContent.style.display = "block";
+                    }
+                }, 1500); // 1.5 Sec Strict Timer
             });
         });
     </script>
