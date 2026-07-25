@@ -8,6 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
     <!-- QRCode.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Tesseract.js CDN for Image Reading (OCR) -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
     
     <style>
         :root {
@@ -29,7 +31,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            /* Beautiful gradient background (cream, yellow, white) */
             background: linear-gradient(135deg, #FFFDD0, #FFD700, #FFFFFF);
             background-size: 200% 200%;
             animation: gradientAnim 10s ease infinite;
@@ -43,7 +44,6 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* Glassmorphism Card */
         .payment-card {
             background: var(--glass-bg);
             backdrop-filter: blur(16px);
@@ -62,10 +62,7 @@
             align-items: center;
         }
 
-        /* Header section */
-        .header {
-            margin-bottom: 20px;
-        }
+        .header { margin-bottom: 20px; }
 
         .logo {
             width: 80px;
@@ -90,25 +87,20 @@
             justify-content: center;
             gap: 6px;
             font-size: 1.25rem;
-            font-weight: 800; /* Bolder font for clean look */
+            font-weight: 800;
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
 
-        /* Shine/Glino Effect on Text - REMOVED for clean premium look as requested */
-        .name-text {
-            color: #2c3e50; /* Fallback and clean color */
-        }
+        .name-text { color: #2c3e50; }
 
-        /* Fixed Blue Tick - ENLARGED to match font size */
         .badge {
-            width: 1.2rem; /* Adjusted to font size */
+            width: 1.2rem;
             height: 1.2rem;
-            object-fit: contain; /* Prevents squishing/stretching */
-            transform: translateY(-1px); /* Slight adjustment to align perfectly with text */
+            object-fit: contain;
+            transform: translateY(-1px);
         }
 
-        /* Amount Card */
         .amount-card {
             background: linear-gradient(135deg, #FDEB71 0%, #F8D800 100%);
             padding: 12px 30px;
@@ -123,11 +115,8 @@
             transition: transform 0.3s ease;
         }
         
-        .amount-card:hover {
-            transform: scale(1.05);
-        }
+        .amount-card:hover { transform: scale(1.05); }
 
-        /* QR Code Section */
         .qr-container {
             background: #ffffff;
             padding: 20px;
@@ -157,7 +146,6 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
-        /* Buttons */
         .button-group {
             display: flex;
             gap: 15px;
@@ -187,9 +175,7 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
         }
 
-        .btn:active {
-            transform: translateY(1px);
-        }
+        .btn:active { transform: translateY(1px); }
 
         .btn-icon {
             width: 24px;
@@ -207,29 +193,6 @@
             border: 1px solid rgba(255, 135, 135, 0.3);
         }
 
-        /* Image Preview */
-        #previewContainer {
-            display: none;
-            width: 100%;
-            margin-top: 10px;
-            margin-bottom: 20px;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        #imagePreview {
-            width: 100%;
-            max-height: 200px;
-            object-fit: cover;
-            border-radius: 16px;
-            border: 3px solid #fff;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
         /* Status Overlay (Processing/Success) */
         #statusOverlay {
             display: none;
@@ -238,7 +201,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             z-index: 100;
@@ -247,35 +210,46 @@
             flex-direction: column;
             text-align: center;
             padding: 30px;
-            border-radius: 30px; /* Optional, makes overlay look rounded on some platforms */
-            opacity: 0;
-            transition: opacity 0.5s ease;
         }
 
-        #statusOverlay.active {
-            display: flex;
-            opacity: 1;
-        }
+        #statusOverlay.active { display: flex; }
 
         .status-gif {
-            max-width: 150px;
+            max-width: 120px;
             margin-bottom: 20px;
         }
 
         .status-text {
-            font-size: 1.2rem;
+            font-size: 1.4rem;
             color: #333;
-            font-weight: 600;
-            margin-bottom: 5px;
+            font-weight: 700;
+            margin-bottom: 8px;
         }
 
         .sub-text {
-            font-size: 1rem;
+            font-size: 0.95rem;
             color: #666;
             margin-bottom: 20px;
+            max-width: 300px;
+            line-height: 1.5;
         }
 
-        /* Footer */
+        .progress-bar {
+            width: 200px;
+            height: 6px;
+            background: #eee;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 0 auto 15px auto;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #F8D800;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
         .footer {
             margin-top: 10px;
             font-size: 0.85rem;
@@ -290,8 +264,6 @@
 <body>
 
     <div class="payment-card" id="mainCard">
-        
-        <!-- Header -->
         <div class="header">
             <img src="logo.jpg" alt="Logo" class="logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'80\' height=\'80\'><circle cx=\'40\' cy=\'40\' r=\'40\' fill=\'%23ccc\'/></svg>'">
             <div class="name-container">
@@ -300,19 +272,13 @@
             </div>
         </div>
 
-        <!-- Amount -->
-        <div class="amount-card" id="amountDisplay">
-            ₹1
-        </div>
+        <div class="amount-card" id="amountDisplay">₹1</div>
 
-        <!-- QR Code -->
         <div class="qr-container">
             <div id="qrcode"></div>
-            <!-- Center Moneybag Icon -->
             <img src="moneybag.gif" alt="Money Bag" class="qr-center-icon" onerror="this.style.display='none'">
         </div>
 
-        <!-- Buttons -->
         <div class="button-group">
             <button class="btn btn-pay" id="payBtn">
                 <img src="rocket.gif" alt="Rocket" class="btn-icon" onerror="this.style.display='none'">
@@ -324,62 +290,56 @@
             </button>
         </div>
 
-        <!-- Hidden File Input for Image Picker -->
         <input type="file" id="fileInput" accept="image/*" style="display: none;">
 
-        <!-- Image Preview - HIDDEN initially -->
-        <div id="previewContainer">
-            <img id="imagePreview" src="" alt="Payment Proof">
-        </div>
-
-        <!-- Footer -->
-        <div class="footer">
-            🔒 Secure UPI Payment
-        </div>
-
+        <div class="footer">🔒 Secure UPI Payment</div>
     </div>
 
     <!-- Status Overlay -->
     <div id="statusOverlay">
+        
+        <!-- 1. Processing State -->
         <div id="processingContent">
-            <img src="moneyfly.gif" alt="Money Flying" class="status-gif" onerror="this.style.display='none'">
-            <div class="status-text">Processing your payment screenshot...</div>
-            <div class="sub-text">Verification is in progress. A complete screenshot with amount, date, and time is required.</div>
+            <img src="moneyfly.gif" alt="Processing" class="status-gif" onerror="this.src='rocket.gif'">
+            <div class="status-text">Processing Payment...</div>
+            <div class="sub-text" id="scanText">Scanning screenshot for details...</div>
+            <div class="progress-bar"><div class="progress-fill" id="scanProgress"></div></div>
         </div>
+
+        <!-- 2. Success State -->
         <div id="successContent" style="display: none;">
-            <img src="tick.gif" alt="Success" class="status-gif" onerror="this.style.display='none'">
-            <div class="status-text">Payment Success! Thank you.</div>
-            <div class="sub-text">Your receipt has been accepted.</div>
+            <img src="tick.gif" alt="Success" class="status-gif">
+            <div class="status-text" style="color: #20c997;">Payment Successful</div>
+            <div class="sub-text">Thank you! Your payment receipt has been verified successfully.</div>
         </div>
+
+        <!-- 3. Failure State -->
         <div id="failureContent" style="display: none;">
-            <img src="cross.gif" alt="Failure" class="status-gif" onerror="this.style.display='none'">
-            <div class="status-text">Verification Failed.</div>
-            <div class="sub-text">Please upload a clear screenshot showing Amount, Date, and Time. A complete payment record is required.</div>
+            <!-- Using rocket or cross if available -->
+            <div style="font-size: 50px; margin-bottom:10px;">❌</div>
+            <div class="status-text" style="color: #ff6b6b;">Verification Failed</div>
+            <div class="sub-text">We couldn't read the correct Amount, Date or Time from the screenshot. Please upload a clear receipt.</div>
+            <button class="btn btn-paid" id="retryBtn" style="margin-top: 15px; width: 200px;">Try Again</button>
         </div>
+
     </div>
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
-            // Configuration
             const upiId = "sunnypro@fam";
             const upiName = "sunny kumar";
             
-            // 1. Get amount from URL
             const urlParams = new URLSearchParams(window.location.search);
-            let amount = urlParams.get('amount');
+            let amountStr = urlParams.get('amount');
             
-            // If missing or invalid, default to 1
-            if (!amount || isNaN(amount) || Number(amount) <= 0) {
-                amount = "1";
+            if (!amountStr || isNaN(amountStr) || Number(amountStr) <= 0) {
+                amountStr = "1";
             }
             
-            // Display Amount
-            document.getElementById("amountDisplay").innerText = `₹${amount}`;
+            document.getElementById("amountDisplay").innerText = `₹${amountStr}`;
 
-            // 2. Generate UPI URL
-            const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(upiName)}&am=${amount}&cu=INR`;
+            const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(upiName)}&am=${amountStr}&cu=INR`;
 
-            // 3. Generate QR Code
             new QRCode(document.getElementById("qrcode"), {
                 text: upiUrl,
                 width: 200,
@@ -389,48 +349,80 @@
                 correctLevel : QRCode.CorrectLevel.H
             });
 
-            // 4. Pay Now Button Logic
-            const payBtn = document.getElementById("payBtn");
-            payBtn.addEventListener("click", () => {
+            document.getElementById("payBtn").addEventListener("click", () => {
                 window.location.href = upiUrl;
             });
 
-            // 5. Paid Button Logic (Image Upload & Status Flow)
             const paidBtn = document.getElementById("paidBtn");
             const fileInput = document.getElementById("fileInput");
             const mainCard = document.getElementById("mainCard");
             const statusOverlay = document.getElementById("statusOverlay");
+            
             const processingContent = document.getElementById("processingContent");
             const successContent = document.getElementById("successContent");
             const failureContent = document.getElementById("failureContent");
+            const scanProgress = document.getElementById("scanProgress");
+            const scanText = document.getElementById("scanText");
+            const retryBtn = document.getElementById("retryBtn");
 
-            paidBtn.addEventListener("click", () => {
-                fileInput.click();
+            paidBtn.addEventListener("click", () => { fileInput.click(); });
+
+            retryBtn.addEventListener("click", () => {
+                statusOverlay.classList.remove("active");
+                mainCard.style.display = "flex";
+                fileInput.value = ""; // reset file input
             });
 
-            fileInput.addEventListener("change", function(event) {
+            fileInput.addEventListener("change", async function(event) {
                 const file = event.target.files[0];
-                if (file) {
-                    // Start Processing Flow
-                    mainCard.style.display = "none";
-                    statusOverlay.classList.add("active");
-                    processingContent.style.display = "block";
-                    successContent.style.display = "none";
-                    failureContent.style.display = "none";
+                if (!file) return;
 
-                    // Simple Heuristic for success: If a file is uploaded, proceed after delay.
-                    // This is a client-side simulation. A true check would be server-side.
-                    setTimeout(() => {
-                        // After delay, simulate verification. 
-                        // For demonstration, always success, but using text to state condition.
-                        processingContent.style.display = "none";
+                // Show processing screen
+                mainCard.style.display = "none";
+                statusOverlay.classList.add("active");
+                processingContent.style.display = "block";
+                successContent.style.display = "none";
+                failureContent.style.display = "none";
+                scanProgress.style.width = "10%";
+
+                try {
+                    // Use Tesseract to read image text
+                    const worker = Tesseract.createWorker({
+                        logger: m => {
+                            if (m.status === 'recognizing text') {
+                                let progress = Math.round(m.progress * 100);
+                                scanProgress.style.width = Math.max(10, progress) + "%";
+                                scanText.innerText = `Analyzing text... ${progress}%`;
+                            }
+                        }
+                    });
+
+                    const result = await Tesseract.recognize(file, 'eng');
+                    const text = result.data.text.toLowerCase();
+                    console.log("Scanned Text:", text); // Log text in console for debugging
+
+                    // Validation Logic
+                    // 1. Check if the exact amount is in the screenshot
+                    const hasAmount = text.includes(amountStr) || text.includes(amountStr + ".00");
+
+                    // 2. Check for Date or Time format patterns
+                    // Matches formats like 12:30, AM, PM, 2023, 2024, or slashes like 12/04
+                    const hasTime = /[0-9]{1,2}:[0-9]{2}/.test(text) || text.includes('am') || text.includes('pm');
+                    const hasDate = text.includes('202') || /(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/.test(text) || /[0-9]{1,2}\/[0-9]{1,2}/.test(text);
+
+                    // Decision
+                    processingContent.style.display = "none";
+
+                    if (hasAmount && (hasTime || hasDate)) {
                         successContent.style.display = "block";
-                        failureContent.style.display = "none";
+                    } else {
+                        failureContent.style.display = "block";
+                    }
 
-                    }, 3000); // 3-second delay for processing effect
-
-                } else {
-                    // Optional: Handle if no file is selected.
+                } catch (error) {
+                    console.error("OCR Error:", error);
+                    processingContent.style.display = "none";
+                    failureContent.style.display = "block";
                 }
             });
         });
