@@ -1,14 +1,15 @@
 // ==========================================
 // 1. FIREBASE CONFIGURATION
 // ==========================================
+// Pura Firebase config block aapne jo diya hai, wahi use kiya gaya hai.
 const firebaseConfig = {
-    apiKey: "AIzaSyD9USJllayyRWHq2FZr7sH6sEPyaXhu_Ek",
-    authDomain: "nexa-payments.firebaseapp.com",
-    databaseURL: "https://nexa-payments-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "nexa-payments",
-    storageBucket: "nexa-payments.firebasestorage.app",
-    messagingSenderId: "94538088085",
-    appId: "1:94538088085:web:8befa95fd1d9424c8ea59c"
+apiKey: "AIzaSyD9USJllayyRWHq2FZr7sH6sEPyaXhu_Ek",
+authDomain: "nexa-payments.firebaseapp.com",
+databaseURL: "https://nexa-payments-default-rtdb.asia-southeast1.firebasedatabase.app",
+projectId: "nexa-payments",
+storageBucket: "nexa-payments.firebasestorage.app",
+messagingSenderId: "94538088085",
+appId: "1:94538088085:web:8befa95fd1d9424c8ea59c"
 };
 
 // Initialize Firebase
@@ -48,8 +49,8 @@ const failureContent = document.getElementById("failureContent");
 const expiredContent = document.getElementById("expiredContent");
 const alreadyPaidContent = document.getElementById("alreadyPaidContent");
 
-// UPI Details
-const upiId = "sunnypro@fam"; // Replace with your actual upi id
+// UPI Details - Replace with your actual upi id
+const upiId = "nexa@ybl"; 
 const upiName = "Nexa Payments";
 let currentTxnId = null;
 let currentTxnData = null;
@@ -138,8 +139,10 @@ function setupQR() {
     
     const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(upiName)}&am=${currentTxnData.amount}&cu=INR`;
     
+    qrcodeDiv.innerHTML = ""; // Clear existing QR
     new QRCode(qrcodeDiv, {
-        text: upiUrl, width: 220, height: 220,
+        text: upiUrl,
+        width: 220, height: 220,
         colorDark : "#000000", colorLight : "#ffffff",
         correctLevel : QRCode.CorrectLevel.H
     });
@@ -236,21 +239,26 @@ submitProofBtn.addEventListener("click", async () => {
             return;
         }
 
-        let isFamPay = /^FAMIB\d{10}$/.test(utr);
+        // Updated FamPay Format Regex to match 'FMPIB' + 10 digits
+        let isFamPay = /^FMPIB\d{10}$/.test(utr);
+        // PhonePe Format Regex: 'T' + 22 digits
         let isPhonePe = /^T\d{22}$/.test(utr);
+        // Paytm Format Regex: Exactly 12 digits
         let isPaytm = /^\d{12}$/.test(utr);
 
         let updates = {};
 
-        // ------------------ FAMPAY LOGIC ------------------
+        // ------------------ FAMPAY LOGIC (Updated prefix FMPIB) ------------------
+        // Example provided in prompt: FMPIB6277416042
         if (isFamPay) {
-            let numPart = parseInt(utr.substring(5));
+            // Updated UTR extraction logic for FMPIB prefix
+            let numPart = parseInt(utr.substring(5)); // Extract last 10 digits
             let recentSnap = await db.ref('recent_fampay').once('value');
             
             if (recentSnap.exists()) {
                 let recent = recentSnap.val();
                 let minDiff = Math.floor((Date.now() - recent.timestamp) / 60000);
-                if (minDiff < 1) minDiff = 1;
+                if (minDiff < 1) minDiff = 1; // Minimum 1 minute logic
                 
                 let requiredIncrement = minDiff * 3000;
                 
@@ -262,8 +270,10 @@ submitProofBtn.addEventListener("click", async () => {
             }
             updates['recent_fampay'] = { id: numPart, timestamp: Date.now() };
 
-        // ------------------ PHONEPE LOGIC ------------------
-        } else if (isPhonePe) {
+        // ------------------ PHONEPE LOGIC (Deep datetime check) ------------------
+        // Example provided in prompt: T2607231650164657724588
+        else if (isPhonePe) {
+            // T YY MM DD HH mm ss ...
             let yy = utr.substr(1, 2);
             let mm = utr.substr(3, 2);
             let dd = utr.substr(5, 2);
@@ -271,10 +281,12 @@ submitProofBtn.addEventListener("click", async () => {
             let min = utr.substr(9, 2);
             let ss = utr.substr(11, 2);
             
+            // Construct Date (Assume 2000 + yy)
             let phonePeDate = new Date(`20${yy}-${mm}-${dd}T${hh}:${min}:${ss}+05:30`);
             let txnStart = new Date(currentTxnData.createdAt);
-            let txnEnd = new Date(currentTxnData.createdAt + (10 * 60000));
+            let txnEnd = new Date(currentTxnData.createdAt + (10 * 60000)); // 10 mins window
 
+            // Validate date is today and time is within transaction window
             let today = new Date();
             let isToday = (phonePeDate.getDate() === today.getDate() && phonePeDate.getMonth() === today.getMonth() && phonePeDate.getFullYear() === today.getFullYear());
 
@@ -284,11 +296,14 @@ submitProofBtn.addEventListener("click", async () => {
                 return;
             }
 
-        // ------------------ PAYTM LOGIC ------------------
-        } else if (isPaytm) {
+        // ------------------ PAYTM LOGIC (Julian Day and Increment) ------------------
+        // Example provided in prompt: 62078765432 (11 digits). CONTRACTION.
+        // Reverting to user's first detailed prompt: 620787654321 (12 digits) with Julian Day 207 (July 26) as it's more specific.
+        // Code is fixed to 12 digits, comments reflect original breakdown logic.
+        else if (isPaytm) {
             let now = new Date();
-            let yearLastDigit = (now.getFullYear() % 10).toString();
-            let dayOfYear = getDayOfYear(now).toString().padStart(3, '0');
+            let yearLastDigit = (now.getFullYear() % 10).toString(); // e.g. 6 for 2026
+            let dayOfYear = getDayOfYear(now).toString().padStart(3, '0'); // e.g. 207 for July 26th
             let requiredPrefix = yearLastDigit + dayOfYear;
 
             if (!utr.startsWith(requiredPrefix)) {
@@ -297,7 +312,7 @@ submitProofBtn.addEventListener("click", async () => {
                 return;
             }
 
-            let seqPart = parseInt(utr.substring(4));
+            let seqPart = parseInt(utr.substring(4)); // Last 8 digits
 
             let recentSnap = await db.ref('recent_paytm').once('value');
             if (recentSnap.exists()) {
@@ -322,14 +337,14 @@ submitProofBtn.addEventListener("click", async () => {
         }
 
         // ==========================================
-        // 8. FINALIZE SUCCESS
+        // 8. FINALIZE SUCCESS (Update Database)
         // ==========================================
         updates[`transactions/${currentTxnId}/status`] = 'paid';
         updates[`used_utrs/${utr}`] = true;
         
         await db.ref().update(updates);
         
-        clearInterval(timerInterval);
+        clearInterval(timerInterval); // Stop timer
         showOverlayContent(successContent);
 
     } catch (error) {
