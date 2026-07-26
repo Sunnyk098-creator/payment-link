@@ -3,17 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Premium Secure Payment</title>
+    <title>Nexa Payments</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- QRCode.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- CSS File -->
+    
+    <!-- Firebase SDK (Version 8 compat for script tag usage) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <!-- External CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- 1. Amount Entry Card -->
+    <!-- 1. Amount Entry Card (Home) -->
     <div class="payment-card" id="amountEntryCard" style="display: none;">
         <img src="moneyfly.gif" alt="Money Fly" class="entry-gif" onerror="this.src='moneybag.gif'">
         <div class="entry-title">How much you want to pay?</div>
@@ -22,23 +27,36 @@
             <span class="currency-symbol">₹</span>
             <input type="number" id="customAmountInput" class="custom-amount-input" placeholder="0" min="1" max="10000000">
         </div>
-        <div class="limit-text">Min: ₹1 | Max: ₹1,00,00,000</div>
-
+        
         <button class="btn btn-submit" id="proceedToPayBtn">Proceed to Pay</button>
-        <div class="footer">🔒 Secure UPI Payment</div>
+        <div class="footer">🔒 Nexa Secure Payments</div>
     </div>
 
-    <!-- 2. Main QR Payment Card -->
+    <!-- 2. Loading / Creating Screen -->
+    <div class="payment-card status-card" id="loadingCard" style="display: none;">
+        <img src="Loading.gif" alt="Loading" class="status-gif">
+        <div class="status-text">Creating Transaction...</div>
+        <div class="sub-text">Please wait while we generate a secure link.</div>
+    </div>
+
+    <!-- 3. Main QR Payment Card -->
     <div class="payment-card" id="mainCard" style="display: none;">
         <div class="header">
             <img src="logo.jpg" alt="Logo" class="logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'80\' height=\'80\'><circle cx=\'40\' cy=\'40\' r=\'40\' fill=\'%23ccc\'/></svg>'">
             <div class="name-container">
-                <span class="name-text">SUNNY KUMAR</span>
+                <span class="name-text">NEXA PAYMENTS</span>
                 <img src="btick.gif" alt="Verified" class="badge" onerror="this.style.display='none'">
             </div>
+            <!-- Global Timer -->
+            <div class="timer-box" id="timerBox">Time left: <span id="timeRemaining">10:00</span></div>
         </div>
 
         <div class="amount-card" id="amountDisplay">₹0</div>
+
+        <!-- Attention Note -->
+        <div class="attention-note">
+            ⚠️ <b>Note:</b> Use Paytm, PhonePe, or FamPay ONLY.
+        </div>
 
         <div class="qr-container">
             <div id="qrcode"></div>
@@ -55,60 +73,79 @@
                 Paid
             </button>
         </div>
-        <div class="footer">🔒 Secure UPI Payment</div>
+        <div class="footer">🔒 Secured by Nexa Database</div>
     </div>
 
-    <!-- 3. Verification Card -->
+    <!-- 4. Verification Card -->
     <div class="payment-card" id="verifyCard" style="display: none;">
-        <div class="header">
-            <div class="name-container" style="margin-bottom: 5px;">
+        <div class="header" style="margin-bottom: 10px;">
+            <div class="name-container">
                 <span class="name-text">Verify Payment</span>
             </div>
-            <div style="font-size: 0.85rem; color: #666; font-weight: 500;">Complete both steps to proceed</div>
+        </div>
+
+        <div class="instruction-box">
+            <b>FamPay:</b> Enter Transaction ID<br>
+            <b>PhonePe:</b> Enter Transaction ID<br>
+            <b>Paytm:</b> Enter UPI Ref No
         </div>
 
         <div class="step-label">Step 1: Upload Screenshot</div>
-        <label for="fileInput" id="uploadBox" class="upload-box">
-            📸 Click to Select Proof
-        </label>
+        <label for="fileInput" id="uploadBox" class="upload-box">📸 Click to Select Proof</label>
         <input type="file" id="fileInput" class="hidden-file-input" accept="image/*">
 
-        <div class="step-label">Step 2: Enter UTR / TXN ID</div>
-        <input type="text" id="utrInput" class="input-field" placeholder="12 Digit UTR or FAMIB..." autocomplete="off">
+        <div class="step-label">Step 2: Enter Transaction Details</div>
+        <input type="text" id="utrInput" class="input-field" placeholder="Enter Valid Transation ID / UTR" autocomplete="off">
 
-        <button class="btn btn-submit" id="submitProofBtn">Verify Now</button>
+        <button class="btn btn-submit" id="submitProofBtn">Verify Payment</button>
         <button class="btn btn-back" id="cancelVerifyBtn">Back</button>
     </div>
 
-    <!-- 4. Status Overlay -->
+    <!-- 5. Global Status Overlay (Processing, Success, Fail, Expired, Already Paid) -->
     <div id="statusOverlay">
-        <div class="status-card">
+        <div class="status-card-inner">
+            
             <!-- Processing -->
-            <div id="processingContent">
-                <img src="moneyfly.gif" alt="Processing" class="status-gif" onerror="this.src='rocket.gif'">
-                <div class="status-text">Verifying Payment</div>
-                <div class="sub-text">Please wait while we check details...</div>
-                <div class="progress-bar"><div class="progress-fill" id="scanProgress"></div></div>
+            <div id="processingContent" style="display: none;">
+                <img src="eye.gif" alt="Processing" class="status-gif" onerror="this.src='Loading.gif'">
+                <div class="status-text">Processing Payment</div>
+                <div class="sub-text">Verifying your transaction securely...</div>
             </div>
 
             <!-- Success -->
             <div id="successContent" style="display: none;">
                 <img src="tick.gif" alt="Success" class="status-gif">
                 <div class="status-text" style="color: #20c997;">Payment Successful</div>
-                <div class="sub-text">Thank you! Your transaction has been verified.</div>
+                <div class="sub-text">Transaction has been successfully verified and saved.</div>
             </div>
 
-            <!-- Failure -->
+            <!-- Fail (Hidden Reason) -->
             <div id="failureContent" style="display: none;">
-                <div style="font-size: 55px; margin-bottom:10px;">❌</div>
-                <div class="status-text" style="color: #ff6b6b;">Verification Failed</div>
-                <div class="sub-text" style="font-weight: 700; color: #d63031;">Fake Payment Detected!</div>
+                <img src="x.gif" alt="Fail" class="status-gif" onerror="this.style.display='none'">
+                <div class="status-text" style="color: #ff6b6b;">Payment Failed</div>
+                <div class="sub-text" id="failMsg" style="font-weight: 700; color: #d63031;">Payment not received</div>
                 <button class="btn btn-paid" id="retryBtn" style="margin-top: 20px; width: 100%;">Try Again</button>
             </div>
+
+            <!-- Expired (Time Up) -->
+            <div id="expiredContent" style="display: none;">
+                <img src="Clock.gif" alt="Time Up" class="status-gif" onerror="this.src='Time.gif'">
+                <div class="status-text" style="color: #ff9f43;">Time Up!</div>
+                <div class="sub-text">This payment link has expired. Please create a new one.</div>
+                <button class="btn btn-back" onclick="window.location.href='/'" style="margin-top: 15px;">Create New Link</button>
+            </div>
+
+            <!-- Already Paid -->
+            <div id="alreadyPaidContent" style="display: none;">
+                <img src="tick.gif" alt="Paid" class="status-gif">
+                <div class="status-text" style="color: #20c997;">Already Paid</div>
+                <div class="sub-text">This transaction link has already been completed successfully.</div>
+            </div>
+
         </div>
     </div>
 
-    <!-- JS Script -->
+    <!-- External JS -->
     <script src="script.js"></script>
 </body>
 </html>
