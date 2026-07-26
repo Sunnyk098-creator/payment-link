@@ -9,7 +9,7 @@
     <!-- QRCode.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
-    <!-- Firebase SDK (Version 8 compat for script tag usage) -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -44,7 +44,8 @@
         <div class="header">
             <img src="logo.jpg" alt="Logo" class="logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'80\' height=\'80\'><circle cx=\'40\' cy=\'40\' r=\'40\' fill=\'%23ccc\'/></svg>'">
             <div class="name-container">
-                <span class="name-text">NEXA PAYMENTS</span>
+                <!-- Name reverted to SUNNY KUMAR -->
+                <span class="name-text">SUNNY KUMAR</span>
                 <img src="btick.gif" alt="Verified" class="badge" onerror="this.style.display='none'">
             </div>
             <!-- Global Timer -->
@@ -101,7 +102,7 @@
         <button class="btn btn-back" id="cancelVerifyBtn">Back</button>
     </div>
 
-    <!-- 5. Global Status Overlay (Processing, Success, Fail, Expired, Already Paid) -->
+    <!-- 5. Global Status Overlay -->
     <div id="statusOverlay">
         <div class="status-card-inner">
             
@@ -119,7 +120,7 @@
                 <div class="sub-text">Transaction has been successfully verified and saved.</div>
             </div>
 
-            <!-- Fail (Hidden Reason) -->
+            <!-- Fail (Updated to use x.gif) -->
             <div id="failureContent" style="display: none;">
                 <img src="x.gif" alt="Fail" class="status-gif" onerror="this.style.display='none'">
                 <div class="status-text" style="color: #ff6b6b;">Payment Failed</div>
