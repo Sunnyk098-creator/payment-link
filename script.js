@@ -49,7 +49,7 @@ const expiredContent = document.getElementById("expiredContent");
 const alreadyPaidContent = document.getElementById("alreadyPaidContent");
 
 // UPI Details - Replace with your actual upi id
-const upiId = "sunnypro@fam"; 
+const upiId = "nexa@ybl"; 
 const upiName = "Nexa Payments";
 let currentTxnId = null;
 let currentTxnData = null;
@@ -92,7 +92,7 @@ proceedToPayBtn.addEventListener("click", () => {
         }).then(() => {
             window.location.href = `/?TXN=${newTxnId}`;
         });
-    }, 1500); // 1.5s Loading.gif
+    }, 1500); 
 });
 
 // ==========================================
@@ -184,7 +184,8 @@ cancelVerifyBtn.addEventListener("click", () => {
 fileInput.addEventListener("change", (e) => {
     if (e.target.files.length > 0) {
         uploadBox.classList.add("has-file");
-        uploadBox.innerText = "✅ Screenshot Attached";
+        // Using correct tick.gif for UI update
+        uploadBox.innerHTML = '<img src="tick.gif" class="inline-icon"> Screenshot Attached';
     }
 });
 
@@ -205,15 +206,8 @@ function showOverlayContent(contentElement) {
 }
 
 // ==========================================
-// 7. COMPLEX DATABASE VERIFICATION LOGIC
+// 7. COMPLEX DATABASE VERIFICATION LOGIC (Only FamPay & PhonePe)
 // ==========================================
-function getDayOfYear(date) {
-    const start = new Date(date.getFullYear(), 0, 0);
-    const diff = date - start;
-    const oneDay = 1000 * 60 * 60 * 24;
-    return Math.floor(diff / oneDay);
-}
-
 submitProofBtn.addEventListener("click", async () => {
     const utr = utrInput.value.trim().toUpperCase();
     const file = fileInput.files[0];
@@ -238,22 +232,20 @@ submitProofBtn.addEventListener("click", async () => {
             return;
         }
 
-        // Regex checks
         let isFamPay = /^FMPIB\d{10}$/.test(utr);
         let isPhonePe = /^T\d{22}$/.test(utr);
-        let isPaytm = /^\d{12}$/.test(utr);
 
         let updates = {};
 
         // ------------------ FAMPAY LOGIC ------------------
         if (isFamPay) {
-            let numPart = parseInt(utr.substring(5)); // Extract last 10 digits
+            let numPart = parseInt(utr.substring(5)); 
             let recentSnap = await db.ref('recent_fampay').once('value');
             
             if (recentSnap.exists()) {
                 let recent = recentSnap.val();
                 let minDiff = Math.floor((Date.now() - recent.timestamp) / 60000);
-                if (minDiff < 1) minDiff = 1; // Minimum 1 minute logic
+                if (minDiff < 1) minDiff = 1; 
                 
                 let requiredIncrement = minDiff * 3000;
                 
@@ -264,8 +256,7 @@ submitProofBtn.addEventListener("click", async () => {
                 }
             }
             updates['recent_fampay'] = { id: numPart, timestamp: Date.now() };
-        } // <-- YE BRACKET MISSING THA PICCHLE CODE MEIN
-
+        } 
         // ------------------ PHONEPE LOGIC ------------------
         else if (isPhonePe) {
             let yy = utr.substr(1, 2);
@@ -288,40 +279,6 @@ submitProofBtn.addEventListener("click", async () => {
                 return;
             }
         }
-
-        // ------------------ PAYTM LOGIC ------------------
-        else if (isPaytm) {
-            let now = new Date();
-            let yearLastDigit = (now.getFullYear() % 10).toString(); // e.g. 6 for 2026
-            let dayOfYear = getDayOfYear(now).toString().padStart(3, '0'); // e.g. 207 for July 26th
-            let requiredPrefix = yearLastDigit + dayOfYear;
-
-            if (!utr.startsWith(requiredPrefix)) {
-                failMsgEl.innerText = "Payment not received";
-                showOverlayContent(failureContent);
-                return;
-            }
-
-            let seqPart = parseInt(utr.substring(4)); // Last 8 digits
-
-            let recentSnap = await db.ref('recent_paytm').once('value');
-            if (recentSnap.exists()) {
-                let recent = recentSnap.val();
-                let minDiff = Math.floor((Date.now() - recent.timestamp) / 60000);
-                if (minDiff < 1) minDiff = 1;
-                
-                let requiredIncrement = minDiff * 1000;
-
-                if (seqPart <= recent.id || (seqPart - recent.id) < requiredIncrement) {
-                    failMsgEl.innerText = "Payment not received";
-                    showOverlayContent(failureContent);
-                    return;
-                }
-            }
-            updates['recent_paytm'] = { id: seqPart, timestamp: Date.now() };
-
-        } 
-        
         // ------------------ INVALID FORMAT ------------------
         else {
             failMsgEl.innerText = "Payment not received";
