@@ -1,15 +1,14 @@
 // ==========================================
 // 1. FIREBASE CONFIGURATION
 // ==========================================
-// Pura Firebase config block aapne jo diya hai, wahi use kiya gaya hai.
 const firebaseConfig = {
-apiKey: "AIzaSyD9USJllayyRWHq2FZr7sH6sEPyaXhu_Ek",
-authDomain: "nexa-payments.firebaseapp.com",
-databaseURL: "https://nexa-payments-default-rtdb.asia-southeast1.firebasedatabase.app",
-projectId: "nexa-payments",
-storageBucket: "nexa-payments.firebasestorage.app",
-messagingSenderId: "94538088085",
-appId: "1:94538088085:web:8befa95fd1d9424c8ea59c"
+    apiKey: "AIzaSyD9USJllayyRWHq2FZr7sH6sEPyaXhu_Ek",
+    authDomain: "nexa-payments.firebaseapp.com",
+    databaseURL: "https://nexa-payments-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "nexa-payments",
+    storageBucket: "nexa-payments.firebasestorage.app",
+    messagingSenderId: "94538088085",
+    appId: "1:94538088085:web:8befa95fd1d9424c8ea59c"
 };
 
 // Initialize Firebase
@@ -239,19 +238,15 @@ submitProofBtn.addEventListener("click", async () => {
             return;
         }
 
-        // Updated FamPay Format Regex to match 'FMPIB' + 10 digits
+        // Regex checks
         let isFamPay = /^FMPIB\d{10}$/.test(utr);
-        // PhonePe Format Regex: 'T' + 22 digits
         let isPhonePe = /^T\d{22}$/.test(utr);
-        // Paytm Format Regex: Exactly 12 digits
         let isPaytm = /^\d{12}$/.test(utr);
 
         let updates = {};
 
-        // ------------------ FAMPAY LOGIC (Updated prefix FMPIB) ------------------
-        // Example provided in prompt: FMPIB6277416042
+        // ------------------ FAMPAY LOGIC ------------------
         if (isFamPay) {
-            // Updated UTR extraction logic for FMPIB prefix
             let numPart = parseInt(utr.substring(5)); // Extract last 10 digits
             let recentSnap = await db.ref('recent_fampay').once('value');
             
@@ -269,11 +264,10 @@ submitProofBtn.addEventListener("click", async () => {
                 }
             }
             updates['recent_fampay'] = { id: numPart, timestamp: Date.now() };
+        } // <-- YE BRACKET MISSING THA PICCHLE CODE MEIN
 
-        // ------------------ PHONEPE LOGIC (Deep datetime check) ------------------
-        // Example provided in prompt: T2607231650164657724588
+        // ------------------ PHONEPE LOGIC ------------------
         else if (isPhonePe) {
-            // T YY MM DD HH mm ss ...
             let yy = utr.substr(1, 2);
             let mm = utr.substr(3, 2);
             let dd = utr.substr(5, 2);
@@ -281,12 +275,10 @@ submitProofBtn.addEventListener("click", async () => {
             let min = utr.substr(9, 2);
             let ss = utr.substr(11, 2);
             
-            // Construct Date (Assume 2000 + yy)
             let phonePeDate = new Date(`20${yy}-${mm}-${dd}T${hh}:${min}:${ss}+05:30`);
             let txnStart = new Date(currentTxnData.createdAt);
             let txnEnd = new Date(currentTxnData.createdAt + (10 * 60000)); // 10 mins window
 
-            // Validate date is today and time is within transaction window
             let today = new Date();
             let isToday = (phonePeDate.getDate() === today.getDate() && phonePeDate.getMonth() === today.getMonth() && phonePeDate.getFullYear() === today.getFullYear());
 
@@ -295,11 +287,9 @@ submitProofBtn.addEventListener("click", async () => {
                 showOverlayContent(failureContent);
                 return;
             }
+        }
 
-        // ------------------ PAYTM LOGIC (Julian Day and Increment) ------------------
-        // Example provided in prompt: 62078765432 (11 digits). CONTRACTION.
-        // Reverting to user's first detailed prompt: 620787654321 (12 digits) with Julian Day 207 (July 26) as it's more specific.
-        // Code is fixed to 12 digits, comments reflect original breakdown logic.
+        // ------------------ PAYTM LOGIC ------------------
         else if (isPaytm) {
             let now = new Date();
             let yearLastDigit = (now.getFullYear() % 10).toString(); // e.g. 6 for 2026
@@ -330,7 +320,10 @@ submitProofBtn.addEventListener("click", async () => {
             }
             updates['recent_paytm'] = { id: seqPart, timestamp: Date.now() };
 
-        } else {
+        } 
+        
+        // ------------------ INVALID FORMAT ------------------
+        else {
             failMsgEl.innerText = "Payment not received";
             showOverlayContent(failureContent);
             return;
