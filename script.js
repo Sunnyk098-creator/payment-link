@@ -49,7 +49,7 @@ const expiredContent = document.getElementById("expiredContent");
 const alreadyPaidContent = document.getElementById("alreadyPaidContent");
 
 // UPI Details
-const upiId = "nexa@ybl"; // Replace with your actual upi id
+const upiId = "sunnypro@fam"; // Replace with your actual upi id
 const upiName = "Nexa Payments";
 let currentTxnId = null;
 let currentTxnData = null;
