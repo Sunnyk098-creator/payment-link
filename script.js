@@ -32,8 +32,6 @@ const qrcodeDiv = document.getElementById("qrcode");
 const payBtn = document.getElementById("payBtn");
 const paidBtn = document.getElementById("paidBtn");
 const timerBox = document.getElementById("timerBox");
-const flexibleCheck = document.getElementById("flexibleCheck");
-const upiIdDisplayBox = document.getElementById("upiIdDisplayBox");
 
 const cancelVerifyBtn = document.getElementById("cancelVerifyBtn");
 const submitProofBtn = document.getElementById("submitProofBtn");
@@ -65,8 +63,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     currentTxnId = urlParams.get('TXN');
 
     if (currentTxnId === 'no') {
-        currentTxnData = { status: 'pending', amount: 0, isFlexible: true };
-        timerBox.style.display = "none";
+        currentTxnData = { status: 'pending', amount: 0 };
+        timerBox.style.display = "none"; 
         setupQR();
     } else if (currentTxnId) {
         loadTransaction(currentTxnId);
@@ -108,15 +106,10 @@ async function checkAdminStatus() {
 // ==========================================
 proceedToPayBtn.addEventListener("click", () => {
     let amt = Number(customAmountInput.value);
-    const isFlexible = flexibleCheck.checked;
 
-    if (isFlexible) {
-        amt = 0;
-    } else {
-        if (!amt || amt < 1 || amt > 10000000) {
-            alert("⚠️ Please enter a valid amount between ₹1 and ₹1,00,00,000");
-            return;
-        }
+    if (!amt || amt < 1 || amt > 10000000) {
+        alert("⚠️ Please enter a valid amount between ₹1 and ₹1,00,00,000");
+        return;
     }
 
     amountEntryCard.style.display = "none";
@@ -126,7 +119,6 @@ proceedToPayBtn.addEventListener("click", () => {
         const newTxnId = "NPSK" + Math.random().toString(36).substr(2, 10).toUpperCase();
         db.ref('transactions/' + newTxnId).set({
             amount: amt,
-            isFlexible: isFlexible,
             createdAt: Date.now(),
             status: "pending"
         }).then(() => {
@@ -184,12 +176,11 @@ function setupQR() {
 
     let upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(upiName)}&cu=INR`;
 
-    if (currentTxnId === 'no' || currentTxnData.isFlexible) {
+    if (currentTxnId === 'no') {
         amountDisplay.innerText = upiId; 
         amountDisplay.style.fontSize = "1.2rem";
         amountDisplay.style.letterSpacing = "1px";
-        upiIdDisplayBox.style.display = "block";
-        if(currentTxnId === 'no') payBtn.style.display = "none"; 
+        payBtn.style.display = "none"; 
     } else {
         amountDisplay.innerText = `₹${currentTxnData.amount}`;
         upiUrl += `&am=${currentTxnData.amount}`;
@@ -267,35 +258,20 @@ function showOverlayContent(contentElement) {
 // 7. ADVANCED FAMPAY FORMAT VALIDATION
 // ==========================================
 function isStrictValidFamPay(utr) {
-    // Basic format: Must start with FMPIB and exactly 10 digits follow
     if (!/^FMPIB\d{10}$/.test(utr)) return false;
-
     const digits = utr.substring(5);
-
-    // Reject all identical digits (e.g., 0000000000, 1111111111, 9999999999)
     if (/^(\d)\1{9}$/.test(digits)) return false;
-
-    // Reject obvious ascending/descending
     if (digits === "1234567890" || digits === "0123456789" || digits === "9876543210") return false;
-
-    // Reject repeating patterns (e.g., 1212121212, 1234512345)
-    if (/^(\d{2})\1{4}$/.test(digits)) return false; // Length 2 pattern repeats
-    if (/^(\d{5})\1$/.test(digits)) return false;    // Length 5 pattern repeats
-    
-    // Pattern like 123123123x
+    if (/^(\d{2})\1{4}$/.test(digits)) return false; 
+    if (/^(\d{5})\1$/.test(digits)) return false;    
     if (digits.substring(0,3) === digits.substring(3,6) && digits.substring(0,3) === digits.substring(6,9)) return false;
-
-    // Reject if it contains more than 5 consecutive identical digits (e.g., 1230000009)
     if (/(\d)\1{5}/.test(digits)) return false;
-
-    // Reject if there are more than 7 identical digits in total anywhere in the string
     let digitCounts = {};
     for (let char of digits) {
         digitCounts[char] = (digitCounts[char] || 0) + 1;
         if (digitCounts[char] > 7) return false;
     }
-
-    return true; // Passed all strict format checks
+    return true; 
 }
 
 // ==========================================
@@ -333,20 +309,19 @@ submitProofBtn.addEventListener("click", async () => {
     try {
         let usedSnap = await db.ref(`used_utrs/${utr}`).once('value');
         if (usedSnap.exists()) {
-            failMsgEl.innerText = "Payment not received"; // Hiding exact reason
+            failMsgEl.innerText = "Payment not received"; 
             showOverlayContent(failureContent);
             return;
         }
 
         let isPhonePe = /^T\d{22}$/.test(utr);
-        let isFamPay = isStrictValidFamPay(utr); // Advanced format check
+        let isFamPay = isStrictValidFamPay(utr); 
 
         let updates = {};
 
         // ------------------ FAMPAY ------------------
         if (utr.startsWith("FMPIB")) {
             if (!isFamPay) {
-                // If it starts with FMPIB but fails the advanced pattern rules
                 failMsgEl.innerText = "Payment not received";
                 showOverlayContent(failureContent);
                 return;
