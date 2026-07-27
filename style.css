@@ -7,10 +7,11 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--primary-font); }
 
+/* UPDATED: Background is back to the premium purple-blue gradient */
 body {
     min-height: 100vh;
     display: flex; justify-content: center; align-items: center;
-    background: linear-gradient(135deg, #FFEFBA 0%, #FFD700 100%);
+    background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
     background-size: 200% 200%;
     animation: gradientAnim 12s ease infinite;
     padding: 20px; color: #333;
@@ -58,7 +59,6 @@ body {
     line-height: 1.6; margin-bottom: 15px; width: 100%;
 }
 
-/* Updated amount card for dynamic text resizing */
 .amount-card {
     background: linear-gradient(135deg, #a8c0ff, #3f2b96); color: #fff;
     padding: 12px 35px; border-radius: 25px; font-size: 1.8rem; font-weight: 800;
@@ -97,12 +97,15 @@ body {
 
 .btn-submit { background: linear-gradient(135deg, #a8c0ff, #3f2b96); color: #fff; width: 100%; padding: 16px; margin-top: 15px; }
 
-/* NEW Button Styling for No Amount */
+/* UPDATED: Colorful gradient for "No Amount QR" Button */
 .btn-no-amount {
-    background: rgba(255, 255, 255, 0.5); border: 1px solid #3f2b96;
-    color: #3f2b96; width: 100%; padding: 16px; margin-top: 10px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: #fff; width: 100%; padding: 16px; margin-top: 12px;
+    border: none; border-radius: 18px; font-size: 1.05rem; font-weight: 700;
+    cursor: pointer; transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);
 }
-.btn-no-amount:hover { background: #3f2b96; color: #fff; }
+.btn-no-amount:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
 
 .btn-back { background: rgba(0,0,0,0.05); width: 100%; margin-top: 10px; padding: 14px; }
 .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
@@ -145,6 +148,7 @@ body {
 .sub-text { font-size: 0.95rem; color: #666; font-weight: 500; }
 .footer { margin-top: 15px; font-size: 0.8rem; color: #777; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; }
 
+/* UPDATED: Blocked screen uses identical premium gradient */
 .blocked-screen {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     z-index: 1000; background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
