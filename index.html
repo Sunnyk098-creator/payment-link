@@ -9,34 +9,51 @@
     <!-- QRCode.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
-    <!-- Firebase SDK -->
+    <!-- Firebase SDK Compat -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-    <!-- External CSS -->
+    <!-- CSS File -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- 1. Amount Entry Card (Home) -->
+    <!-- IP Blocked Screen -->
+    <div class="blocked-screen" id="blockedScreen" style="display: none;">
+        <div class="payment-card status-card">
+            <div style="font-size: 50px; margin-bottom:10px;">🚫</div>
+            <div class="status-text" style="color: #ff6b6b;">Access Forbidden</div>
+            <div class="sub-text">Only the registered admin can create payment links.</div>
+        </div>
+    </div>
+
+    <!-- 1. Amount Entry Card (Home/Link Creation) -->
     <div class="payment-card" id="amountEntryCard" style="display: none;">
-        <!-- Moneyfly GIF -->
-        <img src="moneybag.gif" alt="Aesthetic" class="entry-gif">
+        <img src="moneyfly.gif" alt="Aesthetic" class="entry-gif" onerror="this.src='moneybag.gif'">
         <div class="entry-title">How much you want to pay?</div>
         
         <div class="input-wrapper">
             <span class="currency-symbol">₹</span>
             <input type="number" id="customAmountInput" class="custom-amount-input" placeholder="0" min="1" max="10000000">
         </div>
-        
+        <div class="limit-text">Min: ₹1 | Max: ₹1,00,00,000</div>
+
+        <!-- NEW: No Amount QR Option -->
+        <div class="flexible-amount-box">
+            <label class="flexible-label">
+                <input type="checkbox" id="flexibleCheck" class="hidden-check">
+                <span class="custom-check"></span>
+                <span>No Specific Amount QR</span>
+            </label>
+        </div>
+
         <button class="btn btn-submit" id="proceedToPayBtn">Proceed to Pay</button>
-        <div class="footer">Nexa Secure Payments</div>
+        <div class="footer">🔒 Nexa Secure Payments</div>
     </div>
 
     <!-- 2. Loading / Creating Screen -->
     <div class="payment-card status-card" id="loadingCard" style="display: none;">
-        <!-- Light GIF -->
-        <img src="light.gif" alt="Loading" class="status-gif">
+        <img src="light.gif" alt="Loading" class="status-gif" onerror="this.src='Loading.gif'">
         <div class="status-text">Creating Transaction...</div>
         <div class="sub-text">Please wait while we generate a secure link.</div>
     </div>
@@ -46,44 +63,44 @@
         <div class="header">
             <img src="logo.jpg" alt="Logo" class="logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'80\' height=\'80\'><circle cx=\'40\' cy=\'40\' r=\'40\' fill=\'%23ccc\'/></svg>'">
             <div class="name-container">
-                <!-- Crown + Name + Blue Tick -->
-                <img src="crown.gif" alt="Crown" class="crown-icon">
+                <!-- NEW: Crown in front of name -->
+                <img src="crown.gif" alt="Crown" class="crown-icon" onerror="this.style.display='none'">
                 <span class="name-text">SUNNY KUMAR</span>
                 <img src="btick.gif" alt="Verified" class="badge" onerror="this.style.display='none'">
             </div>
-            <!-- Global Timer with Clock GIF -->
+            <!-- Global Timer with clock gif -->
             <div class="timer-box" id="timerBox">
-                <img src="clock.gif" class="inline-icon" alt="Time">
+                <img src="clock.gif" class="inline-icon" alt="Time" onerror="this.style.display='none'">
                 Time left: <span id="timeRemaining">10:00</span>
             </div>
         </div>
 
         <div class="amount-card" id="amountDisplay">₹0</div>
 
-        <!-- Attention Note with Alert GIF -->
-        <div class="attention-note">
-            <img src="alert.gif" class="inline-icon" alt="Warning">
-            <b>Note:</b> Use PhonePe or FamPay ONLY.
-        </div>
-
         <div class="qr-container">
             <div id="qrcode"></div>
-            <!-- Money Bag GIF -->
-            <img src="moneybag.gif" alt="Money Bag" class="qr-center-icon">
+            <!-- moneybag with bow -->
+            <img src="moneybag.gif" alt="Money Bag" class="qr-center-icon" onerror="this.style.display='none'">
+        </div>
+
+        <!-- UPI ID Display below QR (Visible only for No Amount links) -->
+        <div class="upi-id-box" id="upiIdDisplayBox" style="display: none;">
+            <span class="upi-label">UPI ID:</span>
+            <span class="upi-id-text">sunnypro@fam</span>
         </div>
 
         <div class="button-group">
             <button class="btn btn-pay" id="payBtn">
-                <img src="rocket.gif" alt="Rocket" class="btn-icon">
+                <img src="rocket.gif" alt="Rocket" class="btn-icon" onerror="this.style.display='none'">
                 Pay Now
             </button>
             <button class="btn btn-paid" id="paidBtn">
-                <!-- Tick GIF -->
-                <img src="tick.gif" alt="Tick" class="btn-icon">
+                <!-- tick.gif -->
+                <img src="tick.gif" alt="Tick" class="btn-icon" onerror="this.style.display='none'">
                 Paid
             </button>
         </div>
-        <div class="footer">Secured by Nexa Database</div>
+        <div class="footer">🔒 Secured by Nexa Database</div>
     </div>
 
     <!-- 4. Verification Card -->
@@ -94,10 +111,9 @@
             </div>
         </div>
 
-        <!-- Instructions without Paytm -->
         <div class="instruction-box">
-            <b>FamPay:</b> Enter ID (e.g., FMPIB6277416042)<br>
-            <b>PhonePe:</b> Enter ID (e.g., T2607231650164657724588)
+            <b>FamPay:</b> Enter ID (starts with FMPIB)<br>
+            <b>PhonePe:</b> Enter ID (starts with T)
         </div>
 
         <div class="step-label">Step 1: Upload Screenshot</div>
@@ -107,10 +123,9 @@
         <input type="file" id="fileInput" class="hidden-file-input" accept="image/*">
 
         <div class="step-label">Step 2: Enter TXN ID</div>
-        <!-- Placeholder without Paytm -->
-        <input type="text" id="utrInput" class="input-field" placeholder="e.g., FMPIB... or T..." autocomplete="off">
+        <input type="text" id="utrInput" class="input-field" placeholder="starts with FMPIB... or T..." autocomplete="off">
 
-        <button class="btn btn-submit" id="submitProofBtn">Verify Payment</button>
+        <button class="btn btn-submit" id="submitProofBtn">Verify Now</button>
         <button class="btn btn-back" id="cancelVerifyBtn">Back</button>
     </div>
 
@@ -118,37 +133,37 @@
     <div id="statusOverlay">
         <div class="status-card-inner">
             
-            <!-- Processing (Eye GIF) -->
+            <!-- Processing (eye gif) -->
             <div id="processingContent" style="display: none;">
-                <img src="eye.gif" alt="Processing" class="status-gif">
+                <img src="eye.gif" alt="Processing" class="status-gif" onerror="this.src='Loading.gif'">
                 <div class="status-text">Processing Payment</div>
                 <div class="sub-text">Verifying your transaction securely...</div>
             </div>
 
-            <!-- Success (Tick GIF) -->
+            <!-- Success (tick gif) -->
             <div id="successContent" style="display: none;">
                 <img src="tick.gif" alt="Success" class="status-gif">
                 <div class="status-text" style="color: #20c997;">Payment Successful</div>
-                <div class="sub-text">Transaction has been successfully verified and saved.</div>
+                <div class="sub-text">Thank you! Your transaction has been verified.</div>
             </div>
 
-            <!-- Fail (X GIF) -->
+            <!-- Fail (Hidden Reason, generic x gif) -->
             <div id="failureContent" style="display: none;">
                 <img src="x.gif" alt="Fail" class="status-gif">
-                <div class="status-text" style="color: #ff6b6b;">Payment Failed</div>
+                <div class="status-text" style="color: #ff6b6b;">Verification Failed</div>
                 <div class="sub-text" id="failMsg" style="font-weight: 700; color: #d63031;">Payment not received</div>
                 <button class="btn btn-paid" id="retryBtn" style="margin-top: 20px; width: 100%;">Try Again</button>
             </div>
 
-            <!-- Expired (Clock GIF) -->
+            <!-- Expired (clock gif) -->
             <div id="expiredContent" style="display: none;">
-                <img src="clock.gif" alt="Time Up" class="status-gif">
+                <img src="clock.gif" alt="Time Up" class="status-gif" onerror="this.src='Time.gif'">
                 <div class="status-text" style="color: #ff9f43;">Time Up!</div>
                 <div class="sub-text">This payment link has expired. Please create a new one.</div>
                 <button class="btn btn-back" onclick="window.location.href='/'" style="margin-top: 15px;">Create New Link</button>
             </div>
 
-            <!-- Already Paid (Tick GIF) -->
+            <!-- Already Paid (tick gif) -->
             <div id="alreadyPaidContent" style="display: none;">
                 <img src="tick.gif" alt="Paid" class="status-gif">
                 <div class="status-text" style="color: #20c997;">Already Paid</div>
