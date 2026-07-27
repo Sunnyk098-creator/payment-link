@@ -18,7 +18,9 @@ const db = firebase.database();
 // ==========================================
 // 2. DOM ELEMENTS
 // ==========================================
+const blockedScreen = document.getElementById("blockedScreen");
 const amountEntryCard = document.getElementById("amountEntryCard");
+const flexibleCheck = document.getElementById("flexibleCheck");
 const loadingCard = document.getElementById("loadingCard");
 const mainCard = document.getElementById("mainCard");
 const verifyCard = document.getElementById("verifyCard");
@@ -27,6 +29,7 @@ const statusOverlay = document.getElementById("statusOverlay");
 const customAmountInput = document.getElementById("customAmountInput");
 const proceedToPayBtn = document.getElementById("proceedToPayBtn");
 const amountDisplay = document.getElementById("amountDisplay");
+const upiIdDisplayBox = document.getElementById("upiIdDisplayBox");
 const qrcodeDiv = document.getElementById("qrcode");
 const payBtn = document.getElementById("payBtn");
 const paidBtn = document.getElementById("paidBtn");
@@ -48,45 +51,106 @@ const failureContent = document.getElementById("failureContent");
 const expiredContent = document.getElementById("expiredContent");
 const alreadyPaidContent = document.getElementById("alreadyPaidContent");
 
-// UPI Details - Replace with your actual upi id
-const upiId = "nexa@ybl"; 
+// UPI Details - Dedicated UPI ID
+const upiId = "sunnypro@fam"; 
 const upiName = "Nexa Payments";
 let currentTxnId = null;
 let currentTxnData = null;
 let timerInterval = null;
 
 // ==========================================
-// 3. ROUTING & INITIALIZATION
+// 3. ROUTING, IP LOCK, & INITIALIZATION
 // ==========================================
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     const urlParams = new URLSearchParams(window.location.search);
     currentTxnId = urlParams.get('TXN');
 
     if (currentTxnId) {
+        // Banjara wale payment link ko sab dekh sakte hain
         loadTransaction(currentTxnId);
     } else {
-        amountEntryCard.style.display = "flex";
+        // Root page (Link creation) blocked Screen mein rahega jab tak check ho
+        blockedScreen.style.display = "flex";
+        amountEntryCard.style.display = "none";
+        
+        // NEW: IP-based Lock Mechanism
+        checkAdminStatus();
     }
 });
+
+// NEW Function: Handle IP Lock/Admin registration
+async function checkAdminStatus() {
+    try {
+        // Public IP Fetch
+        const ipResponse = await fetch('https://api.ipify.org?format=json');
+        if (!ipResponse.ok) throw new Error("Could not fetch IP");
+        const ipData = await ipResponse.json();
+        const userIp = ipData.ip;
+
+        // Firebase RTDB Logic: Use transaction to prevent race conditions
+        const adminLockRef = db.ref('admin/locked_ip');
+        
+        const result = await adminLockRef.transaction((currentIpInDb) => {
+            if (currentIpInDb === null) {
+                // If node is empty, this user is the first one. Store their IP.
+                return userIp;
+            } else {
+                // If not empty, do not update.
+                return; 
+            }
+        });
+
+        // Evaluate the result after transaction attempt
+        if (result.committed) {
+            // New admin registered, result.snapshot has the stored value (which is userIp)
+            amountEntryCard.style.display = "flex";
+            blockedScreen.style.display = "none";
+        } else if (result.snapshot.exists() && result.snapshot.val() === userIp) {
+            // User is already registered admin.
+            amountEntryCard.style.display = "flex";
+            blockedScreen.style.display = "none";
+        } else {
+            // Mismatch: Different admin registered. Block access.
+            blockedScreen.style.display = "flex";
+            amountEntryCard.style.display = "none";
+        }
+
+    } catch (error) {
+        console.error("Admin check failed:", error);
+        // Fallback: If IP service or DB fails, assume locked to be safe, show nothing.
+        blockedScreen.style.display = "flex"; 
+    }
+}
 
 // ==========================================
 // 4. CREATE TRANSACTION (Home Screen)
 // ==========================================
 proceedToPayBtn.addEventListener("click", () => {
-    const amt = Number(customAmountInput.value);
-    if (!amt || amt < 1 || amt > 10000000) {
-        alert("Enter amount between ₹1 and ₹1,00,00,000");
-        return;
+    // UPDATED: Allow flexibility
+    const isFlexible = flexibleCheck.checked;
+    let amt = Number(customAmountInput.value);
+
+    // Flexible mode means user inputs amount on their app, we set 0 in link creation
+    if (isFlexible) {
+        amt = 0;
+    } else {
+        // Standard Amount mode, needs validation
+        if (!amt || amt < 1 || amt > 10000000) {
+            alert("⚠️ Please enter a valid amount between ₹1 and ₹1,00,00,000 OR check 'No Specific Amount' box.");
+            return;
+        }
     }
 
     amountEntryCard.style.display = "none";
-    loadingCard.style.display = "flex";
+    loadingCard.style.display = "flex"; // Shows light.gif
 
     setTimeout(() => {
         const newTxnId = "NPSK" + Math.random().toString(36).substr(2, 10).toUpperCase();
         
         db.ref('transactions/' + newTxnId).set({
             amount: amt,
+            // UPDATED: Store flexibility indicator
+            isFlexible: isFlexible, 
             createdAt: Date.now(),
             status: "pending"
         }).then(() => {
@@ -109,12 +173,12 @@ function loadTransaction(txnId) {
         currentTxnData = snapshot.val();
 
         if (currentTxnData.status === "paid") {
-            showOverlayContent(alreadyPaidContent);
+            showOverlayContent(alreadyPaidContent); // Green Tick
             return;
         }
 
         if (currentTxnData.status === "expired") {
-            showOverlayContent(expiredContent);
+            showOverlayContent(expiredContent); // Red Cross
             return;
         }
 
@@ -134,9 +198,23 @@ function loadTransaction(txnId) {
 
 function setupQR() {
     mainCard.style.display = "flex";
-    amountDisplay.innerText = `₹${currentTxnData.amount}`;
+
+    // UPDATED: Handle No Amount Display
+    if (currentTxnData.isFlexible) {
+        amountDisplay.innerText = `₹0`;
+        // NEW: Show UPI ID display box below QR
+        upiIdDisplayBox.style.display = "block"; 
+    } else {
+        amountDisplay.innerText = `₹${currentTxnData.amount}`;
+        // Standard link, ensure UPI ID box is hidden
+        upiIdDisplayBox.style.display = "none"; 
+    }
     
-    const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(upiName)}&am=${currentTxnData.amount}&cu=INR`;
+    // UPDATED UPI URL: Some apps handle empty amount better with no parameter
+    let upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(upiName)}&cu=INR`;
+    if (!currentTxnData.isFlexible) {
+        upiUrl += `&am=${currentTxnData.amount}`;
+    }
     
     qrcodeDiv.innerHTML = ""; // Clear existing QR
     new QRCode(qrcodeDiv, {
@@ -146,7 +224,13 @@ function setupQR() {
         correctLevel : QRCode.CorrectLevel.H
     });
 
-    payBtn.addEventListener("click", () => window.location.href = upiUrl);
+    // Paybtn action
+    payBtn.addEventListener("click", () => {
+        if(currentTxnData.isFlexible) {
+            alert("⚠️ Important: User must manually enter amount in UPI App.");
+        }
+        window.location.href = upiUrl;
+    });
 }
 
 function startTimer(durationMs) {
@@ -184,7 +268,7 @@ cancelVerifyBtn.addEventListener("click", () => {
 fileInput.addEventListener("change", (e) => {
     if (e.target.files.length > 0) {
         uploadBox.classList.add("has-file");
-        // Using correct tick.gif for UI update
+        // NEW Green Tick inside status update box
         uploadBox.innerHTML = '<img src="tick.gif" class="inline-icon"> Screenshot Attached';
     }
 });
@@ -213,7 +297,7 @@ submitProofBtn.addEventListener("click", async () => {
     const file = fileInput.files[0];
 
     if (!utr || !file) {
-        alert("Please upload screenshot and enter ID");
+        alert("⚠️ Please upload screenshot and enter valid ID.");
         return;
     }
 
@@ -232,6 +316,7 @@ submitProofBtn.addEventListener("click", async () => {
             return;
         }
 
+        // Regex checks
         let isFamPay = /^FMPIB\d{10}$/.test(utr);
         let isPhonePe = /^T\d{22}$/.test(utr);
 
@@ -239,7 +324,7 @@ submitProofBtn.addEventListener("click", async () => {
 
         // ------------------ FAMPAY LOGIC ------------------
         if (isFamPay) {
-            let numPart = parseInt(utr.substring(5)); 
+            let numPart = parseInt(utr.substring(5)); // Extract last 10 digits
             let recentSnap = await db.ref('recent_fampay').once('value');
             
             if (recentSnap.exists()) {
@@ -247,17 +332,18 @@ submitProofBtn.addEventListener("click", async () => {
                 let minDiff = Math.floor((Date.now() - recent.timestamp) / 60000);
                 if (minDiff < 1) minDiff = 1; 
                 
-                let requiredIncrement = minDiff * 3000;
+                // UPDATED FamPay Increment: Now set to 1000/min
+                let requiredIncrement = minDiff * 1000;
                 
                 if (numPart <= recent.id || (numPart - recent.id) < requiredIncrement) {
                     failMsgEl.innerText = "Payment not received";
-                    showOverlayContent(failureContent);
+                    showOverlayContent(failureContent); // generic x gif
                     return;
                 }
             }
             updates['recent_fampay'] = { id: numPart, timestamp: Date.now() };
         } 
-        // ------------------ PHONEPE LOGIC ------------------
+        // ------------------ PHONEPE LOGIC (deep datetime window check) ------------------
         else if (isPhonePe) {
             let yy = utr.substr(1, 2);
             let mm = utr.substr(3, 2);
@@ -268,9 +354,11 @@ submitProofBtn.addEventListener("click", async () => {
             
             let phonePeDate = new Date(`20${yy}-${mm}-${dd}T${hh}:${min}:${ss}+05:30`);
             let txnStart = new Date(currentTxnData.createdAt);
-            let txnEnd = new Date(currentTxnData.createdAt + (10 * 60000)); // 10 mins window
+            // Window is transaction creation + 10 mins expiry
+            let txnEnd = new Date(currentTxnData.createdAt + (10 * 60000));
 
             let today = new Date();
+            // Validate date is today and time is within transaction creation window
             let isToday = (phonePeDate.getDate() === today.getDate() && phonePeDate.getMonth() === today.getMonth() && phonePeDate.getFullYear() === today.getFullYear());
 
             if (!isToday || phonePeDate < txnStart || phonePeDate > txnEnd) {
@@ -295,7 +383,7 @@ submitProofBtn.addEventListener("click", async () => {
         await db.ref().update(updates);
         
         clearInterval(timerInterval); // Stop timer
-        showOverlayContent(successContent);
+        showOverlayContent(successContent); // shows tick.gif
 
     } catch (error) {
         console.error("DB Error:", error);
