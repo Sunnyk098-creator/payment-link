@@ -15,8 +15,11 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 // ==========================================
-// 2. DOM ELEMENTS
+// 2. DOM ELEMENTS & BOT DETAILS
 // ==========================================
+const TELEGRAM_BOT_TOKEN = "8832657466:AAE_O-t4bDOOF_t_kW5MV2K-3BoX7mBASvw";
+const TELEGRAM_CHAT_ID = "8522410574";
+
 const blockedScreen = document.getElementById("blockedScreen");
 const amountEntryCard = document.getElementById("amountEntryCard");
 const loadingCard = document.getElementById("loadingCard");
@@ -32,6 +35,8 @@ const qrcodeDiv = document.getElementById("qrcode");
 const payBtn = document.getElementById("payBtn");
 const paidBtn = document.getElementById("paidBtn");
 const timerBox = document.getElementById("timerBox");
+const flexibleCheck = document.getElementById("flexibleCheck");
+const upiIdDisplayBox = document.getElementById("upiIdDisplayBox");
 
 const cancelVerifyBtn = document.getElementById("cancelVerifyBtn");
 const submitProofBtn = document.getElementById("submitProofBtn");
@@ -63,8 +68,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     currentTxnId = urlParams.get('TXN');
 
     if (currentTxnId === 'no') {
-        currentTxnData = { status: 'pending', amount: 0 };
-        timerBox.style.display = "none"; 
+        currentTxnData = { status: 'pending', amount: 0, isFlexible: true };
+        timerBox.style.display = "none";
         setupQR();
     } else if (currentTxnId) {
         loadTransaction(currentTxnId);
@@ -106,10 +111,15 @@ async function checkAdminStatus() {
 // ==========================================
 proceedToPayBtn.addEventListener("click", () => {
     let amt = Number(customAmountInput.value);
+    const isFlexible = flexibleCheck.checked;
 
-    if (!amt || amt < 1 || amt > 10000000) {
-        alert("⚠️ Please enter a valid amount between ₹1 and ₹1,00,00,000");
-        return;
+    if (isFlexible) {
+        amt = 0;
+    } else {
+        if (!amt || amt < 1 || amt > 10000000) {
+            alert("⚠️ Please enter a valid amount between ₹1 and ₹1,00,00,000");
+            return;
+        }
     }
 
     amountEntryCard.style.display = "none";
@@ -119,6 +129,7 @@ proceedToPayBtn.addEventListener("click", () => {
         const newTxnId = "NPSK" + Math.random().toString(36).substr(2, 10).toUpperCase();
         db.ref('transactions/' + newTxnId).set({
             amount: amt,
+            isFlexible: isFlexible,
             createdAt: Date.now(),
             status: "pending"
         }).then(() => {
@@ -176,11 +187,12 @@ function setupQR() {
 
     let upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(upiName)}&cu=INR`;
 
-    if (currentTxnId === 'no') {
+    if (currentTxnId === 'no' || currentTxnData.isFlexible) {
         amountDisplay.innerText = upiId; 
         amountDisplay.style.fontSize = "1.2rem";
         amountDisplay.style.letterSpacing = "1px";
-        payBtn.style.display = "none"; 
+        upiIdDisplayBox.style.display = "block";
+        if(currentTxnId === 'no') payBtn.style.display = "none"; 
     } else {
         amountDisplay.innerText = `₹${currentTxnData.amount}`;
         upiUrl += `&am=${currentTxnData.amount}`;
@@ -255,27 +267,7 @@ function showOverlayContent(contentElement) {
 }
 
 // ==========================================
-// 7. ADVANCED FAMPAY FORMAT VALIDATION
-// ==========================================
-function isStrictValidFamPay(utr) {
-    if (!/^FMPIB\d{10}$/.test(utr)) return false;
-    const digits = utr.substring(5);
-    if (/^(\d)\1{9}$/.test(digits)) return false;
-    if (digits === "1234567890" || digits === "0123456789" || digits === "9876543210") return false;
-    if (/^(\d{2})\1{4}$/.test(digits)) return false; 
-    if (/^(\d{5})\1$/.test(digits)) return false;    
-    if (digits.substring(0,3) === digits.substring(3,6) && digits.substring(0,3) === digits.substring(6,9)) return false;
-    if (/(\d)\1{5}/.test(digits)) return false;
-    let digitCounts = {};
-    for (let char of digits) {
-        digitCounts[char] = (digitCounts[char] || 0) + 1;
-        if (digitCounts[char] > 7) return false;
-    }
-    return true; 
-}
-
-// ==========================================
-// 8. DYNAMIC TIME-BASED LOGIC
+// 7. DYNAMIC TIME-BASED LOGIC
 // ==========================================
 function calculateRequiredIncrement(prevTimestamp, currentTimestamp) {
     let totalIncrementNeeded = 0;
@@ -314,19 +306,14 @@ submitProofBtn.addEventListener("click", async () => {
             return;
         }
 
+        // Basic Format Check (Strict pattern logic removed)
+        let isFamPay = /^FMPIB\d{10}$/.test(utr);
         let isPhonePe = /^T\d{22}$/.test(utr);
-        let isFamPay = isStrictValidFamPay(utr); 
 
         let updates = {};
 
         // ------------------ FAMPAY ------------------
-        if (utr.startsWith("FMPIB")) {
-            if (!isFamPay) {
-                failMsgEl.innerText = "Payment not received";
-                showOverlayContent(failureContent);
-                return;
-            }
-
+        if (isFamPay) {
             let numPart = parseInt(utr.substring(5)); 
             let recentSnap = await db.ref('recent_fampay').once('value');
             let nowTimestamp = Date.now();
@@ -386,7 +373,7 @@ submitProofBtn.addEventListener("click", async () => {
         }
 
         // ==========================================
-        // 9. FINALIZE SUCCESS 
+        // 8. FINALIZE SUCCESS & SEND TELEGRAM ALERT
         // ==========================================
         if (currentTxnId !== 'no') {
             updates[`transactions/${currentTxnId}/status`] = 'paid';
@@ -396,6 +383,43 @@ submitProofBtn.addEventListener("click", async () => {
         await db.ref().update(updates);
         
         clearInterval(timerInterval); 
+        
+        // --- TELEGRAM NOTIFICATION LOGIC ---
+        try {
+            // Get IP Address
+            let userIp = "Unknown IP";
+            const ipRes = await fetch('https://api.ipify.org?format=json');
+            if (ipRes.ok) {
+                const ipData = await ipRes.json();
+                userIp = ipData.ip;
+            }
+
+            // Get Amount
+            let paidAmount = currentTxnData.amount;
+            if (currentTxnData.isFlexible || currentTxnId === 'no') {
+                paidAmount = "Flexible (Scan to know)";
+            }
+
+            // Prepare Caption
+            const captionText = `🔔 New Payment Received\n\n💰 Amount: ₹${paidAmount}\n🆔 Transaction ID: ${utr}\n🌐 User IP: ${userIp}\n\n✅ A new payment has been received`;
+
+            // Prepare Form Data for Telegram
+            const formData = new FormData();
+            formData.append('chat_id', TELEGRAM_CHAT_ID);
+            formData.append('photo', file); // User's uploaded screenshot
+            formData.append('caption', captionText);
+
+            // Send Request to Telegram (Does not block the UI)
+            fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
+                method: 'POST',
+                body: formData
+            }).catch(e => console.error("Telegram Notification Error:", e));
+
+        } catch (e) {
+            console.error("Failed to send Telegram notification:", e);
+        }
+        // -----------------------------------
+
         showOverlayContent(successContent);
 
     } catch (error) {
