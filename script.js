@@ -306,21 +306,38 @@ submitProofBtn.addEventListener("click", async () => {
             return;
         }
 
-        // Basic Format Check (Strict pattern logic removed)
         let isFamPay = /^FMPIB\d{10}$/.test(utr);
         let isPhonePe = /^T\d{22}$/.test(utr);
 
         let updates = {};
+        let nowTimestamp = Date.now();
 
         // ------------------ FAMPAY ------------------
         if (isFamPay) {
             let numPart = parseInt(utr.substring(5)); 
             let recentSnap = await db.ref('recent_fampay').once('value');
-            let nowTimestamp = Date.now();
 
             if (recentSnap.exists()) {
                 let recent = recentSnap.val();
-                let requiredIncrement = calculateRequiredIncrement(recent.timestamp, nowTimestamp);
+                
+                // SMART WINDOW LOGIC: 
+                // Determine transaction creation time for fair increment calculation
+                let txnStartTime;
+                if (currentTxnId === 'no') {
+                    // For flexible/no amount QR, give a 10 min grace period from current time
+                    txnStartTime = nowTimestamp - (10 * 60000); 
+                } else {
+                    // For standard links, use the exact time the link was created!
+                    txnStartTime = currentTxnData.createdAt;
+                }
+
+                let requiredIncrement = 10;
+                
+                // Only demand increment up to the txnStartTime, NOT current time
+                if (recent.timestamp < txnStartTime) {
+                    requiredIncrement = calculateRequiredIncrement(recent.timestamp, txnStartTime);
+                }
+                
                 if (requiredIncrement < 10) requiredIncrement = 10; 
 
                 if (numPart <= recent.id || (numPart - recent.id) < requiredIncrement) {
@@ -329,6 +346,8 @@ submitProofBtn.addEventListener("click", async () => {
                     return;
                 }
             }
+            
+            // Save current transaction as latest in DB
             let d = new Date(nowTimestamp);
             updates['recent_fampay'] = { 
                 id: numPart, timestamp: nowTimestamp,
@@ -386,7 +405,6 @@ submitProofBtn.addEventListener("click", async () => {
         
         // --- TELEGRAM NOTIFICATION LOGIC ---
         try {
-            // Get IP Address
             let userIp = "Unknown IP";
             const ipRes = await fetch('https://api.ipify.org?format=json');
             if (ipRes.ok) {
@@ -394,22 +412,18 @@ submitProofBtn.addEventListener("click", async () => {
                 userIp = ipData.ip;
             }
 
-            // Get Amount
             let paidAmount = currentTxnData.amount;
             if (currentTxnData.isFlexible || currentTxnId === 'no') {
                 paidAmount = "Flexible (Scan to know)";
             }
 
-            // Prepare Caption
             const captionText = `🔔 New Payment Received\n\n💰 Amount: ₹${paidAmount}\n🆔 Transaction ID: ${utr}\n🌐 User IP: ${userIp}\n\n✅ A new payment has been received`;
 
-            // Prepare Form Data for Telegram
             const formData = new FormData();
             formData.append('chat_id', TELEGRAM_CHAT_ID);
-            formData.append('photo', file); // User's uploaded screenshot
+            formData.append('photo', file); 
             formData.append('caption', captionText);
 
-            // Send Request to Telegram (Does not block the UI)
             fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {
                 method: 'POST',
                 body: formData
