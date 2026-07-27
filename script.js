@@ -35,7 +35,6 @@ const qrcodeDiv = document.getElementById("qrcode");
 const payBtn = document.getElementById("payBtn");
 const paidBtn = document.getElementById("paidBtn");
 const timerBox = document.getElementById("timerBox");
-const flexibleCheck = document.getElementById("flexibleCheck");
 const upiIdDisplayBox = document.getElementById("upiIdDisplayBox");
 
 const cancelVerifyBtn = document.getElementById("cancelVerifyBtn");
@@ -111,15 +110,11 @@ async function checkAdminStatus() {
 // ==========================================
 proceedToPayBtn.addEventListener("click", () => {
     let amt = Number(customAmountInput.value);
-    const isFlexible = flexibleCheck.checked;
 
-    if (isFlexible) {
-        amt = 0;
-    } else {
-        if (!amt || amt < 1 || amt > 10000000) {
-            alert("⚠️ Please enter a valid amount between ₹1 and ₹1,00,00,000");
-            return;
-        }
+    // Bug Fixed: Removed flexibleCheck logic from here. Now it strictly validates the amount.
+    if (!amt || amt < 1 || amt > 10000000) {
+        alert("⚠️ Please enter a valid amount between ₹1 and ₹1,00,00,000");
+        return;
     }
 
     amountEntryCard.style.display = "none";
@@ -129,7 +124,7 @@ proceedToPayBtn.addEventListener("click", () => {
         const newTxnId = "NPSK" + Math.random().toString(36).substr(2, 10).toUpperCase();
         db.ref('transactions/' + newTxnId).set({
             amount: amt,
-            isFlexible: isFlexible,
+            isFlexible: false, // Standard amount QR is never flexible
             createdAt: Date.now(),
             status: "pending"
         }).then(() => {
@@ -306,6 +301,7 @@ submitProofBtn.addEventListener("click", async () => {
             return;
         }
 
+        // Basic format check without strict pattern logic
         let isFamPay = /^FMPIB\d{10}$/.test(utr);
         let isPhonePe = /^T\d{22}$/.test(utr);
 
@@ -321,13 +317,12 @@ submitProofBtn.addEventListener("click", async () => {
                 let recent = recentSnap.val();
                 
                 // SMART WINDOW LOGIC: 
-                // Determine transaction creation time for fair increment calculation
                 let txnStartTime;
                 if (currentTxnId === 'no') {
                     // For flexible/no amount QR, give a 10 min grace period from current time
                     txnStartTime = nowTimestamp - (10 * 60000); 
                 } else {
-                    // For standard links, use the exact time the link was created!
+                    // For standard links, use the exact time the link was created
                     txnStartTime = currentTxnData.createdAt;
                 }
 
