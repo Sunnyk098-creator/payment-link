@@ -10,7 +10,7 @@
 body {
     min-height: 100vh;
     display: flex; justify-content: center; align-items: center;
-    background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+    background: linear-gradient(135deg, #FFEFBA 0%, #FFD700 100%);
     background-size: 200% 200%;
     animation: gradientAnim 12s ease infinite;
     padding: 20px; color: #333;
@@ -41,14 +41,10 @@ body {
 .name-container { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
 .name-text { font-size: 1.35rem; font-weight: 800; color: #2c3e50; text-transform: uppercase; }
 
-/* Crown and Blue Tick Sizing */
-.crown-icon { width: 30px; height: 30px; object-fit: contain; }
 .badge { width: 28px; height: 28px; object-fit: contain; }
-
-/* Inline GIFs inside text */
+.crown-icon { width: 30px; height: 30px; object-fit: contain; }
 .inline-icon { width: 20px; height: 20px; vertical-align: middle; margin-right: 6px; object-fit: contain; }
 
-/* Timer */
 .timer-box {
     display: flex; align-items: center; justify-content: center;
     margin-top: 10px; padding: 5px 15px; background: #ff6b6b; color: white;
@@ -56,19 +52,13 @@ body {
     box-shadow: 0 4px 10px rgba(255, 107, 107, 0.4);
 }
 
-/* Notes & Instructions */
-.attention-note {
-    display: flex; align-items: center;
-    background: rgba(255, 234, 167, 0.8); border-left: 4px solid #fdcb6e;
-    padding: 10px; font-size: 0.85rem; border-radius: 8px; margin-bottom: 20px;
-    color: #d35400; font-weight: 600; width: 100%; text-align: left;
-}
 .instruction-box {
     background: #e3f2fd; border: 1px solid #90caf9; border-radius: 12px;
     padding: 15px; text-align: left; font-size: 0.85rem; color: #1565c0;
     line-height: 1.6; margin-bottom: 15px; width: 100%;
 }
 
+/* Updated amount card for dynamic text resizing */
 .amount-card {
     background: linear-gradient(135deg, #a8c0ff, #3f2b96); color: #fff;
     padding: 12px 35px; border-radius: 25px; font-size: 1.8rem; font-weight: 800;
@@ -85,7 +75,6 @@ body {
     width: 55px; height: 55px; background: #fff; border-radius: 50%; padding: 5px;
 }
 
-/* Fixed Layout for Buttons */
 .button-group { display: flex; gap: 15px; width: 100%; margin-bottom: 15px; }
 
 .btn {
@@ -95,30 +84,27 @@ body {
     overflow: hidden; max-height: 55px;
 }
 
-.btn-icon {
-    width: 24px; height: 24px; min-width: 24px; max-width: 24px;
-    object-fit: contain; display: block;
-}
+.btn-icon { width: 24px; height: 24px; min-width: 24px; max-width: 24px; object-fit: contain; display: block; }
 
-/* Glassmorphism Effect for Buttons */
 .btn-pay {
-    background: rgba(32, 201, 151, 0.25);
-    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(32, 201, 151, 0.5);
-    box-shadow: 0 4px 15px rgba(32, 201, 151, 0.1);
-    color: #0b7a59;
+    background: rgba(32, 201, 151, 0.25); backdrop-filter: blur(10px);
+    border: 1px solid rgba(32, 201, 151, 0.5); color: #0b7a59;
 }
 .btn-paid {
-    background: rgba(255, 107, 107, 0.25);
-    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 107, 107, 0.5);
-    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.1);
-    color: #c92a2a;
+    background: rgba(255, 107, 107, 0.25); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 107, 107, 0.5); color: #c92a2a;
 }
 
 .btn-submit { background: linear-gradient(135deg, #a8c0ff, #3f2b96); color: #fff; width: 100%; padding: 16px; margin-top: 15px; }
-.btn-back { background: rgba(0,0,0,0.05); width: 100%; margin-top: 10px; padding: 14px; }
 
+/* NEW Button Styling for No Amount */
+.btn-no-amount {
+    background: rgba(255, 255, 255, 0.5); border: 1px solid #3f2b96;
+    color: #3f2b96; width: 100%; padding: 16px; margin-top: 10px;
+}
+.btn-no-amount:hover { background: #3f2b96; color: #fff; }
+
+.btn-back { background: rgba(0,0,0,0.05); width: 100%; margin-top: 10px; padding: 14px; }
 .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
 
 .step-label { width: 100%; text-align: left; font-size: 0.9rem; font-weight: 700; color: #444; margin: 10px 0 5px 5px; }
@@ -133,8 +119,7 @@ body {
     font-size: 1rem; outline: none; text-align: center; font-weight: 600;
 }
 
-/* Home Screen Specific */
-.entry-gif { max-width: 130px; margin-bottom: 15px; }
+.entry-gif { max-width: 120px; margin-bottom: 15px; }
 .entry-title { font-size: 1.3rem; font-weight: 700; color: #2c3e50; margin-bottom: 20px; }
 .input-wrapper {
     display: flex; align-items: center; background: #fff; border-radius: 20px;
@@ -144,58 +129,24 @@ body {
 .custom-amount-input { border: none; outline: none; font-size: 1.8rem; font-weight: 700; width: 100%; color: #333; }
 .limit-text { font-size: 0.8rem; color: #888; margin-bottom: 10px; font-weight: 600; text-align: left; width: 100%; padding-left: 10px; }
 
-/* UPDATED: Status Overlay for Seamless Background Matching */
 #statusOverlay {
     display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: transparent; /* Removed the dark dimming effect */
-    z-index: 100;
-    justify-content: center; align-items: center;
-    padding: 20px;
+    background: transparent; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    z-index: 100; justify-content: center; align-items: center; padding: 20px;
 }
 #statusOverlay.active { display: flex; }
 .status-card-inner {
-    background: var(--glass-bg); /* Match the glass background of main cards */
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
-    border: 1px solid var(--glass-border);
-    border-radius: 30px; 
-    padding: 40px 20px;
-    box-shadow: var(--shadow); 
-    width: 100%; 
-    max-width: 420px; /* Matched the size of regular cards */
-    text-align: center;
+    background: var(--glass-bg); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+    border: 1px solid var(--glass-border); border-radius: 30px; padding: 40px 20px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2); width: 90%; max-width: 380px; text-align: center;
 }
 .status-gif { max-width: 110px; margin-bottom: 20px; object-fit: contain; }
 .status-text { font-size: 1.4rem; font-weight: 800; margin-bottom: 10px; color: #333; }
 .sub-text { font-size: 0.95rem; color: #666; font-weight: 500; }
-.footer { margin-top: 15px; font-size: 0.8rem; color: #777; font-weight: 600; }
+.footer { margin-top: 15px; font-size: 0.8rem; color: #777; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; }
 
-/* NEW: IP Blocked Screen */
 .blocked-screen {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     z-index: 1000; background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
     display: flex; justify-content: center; align-items: center; padding: 20px;
 }
-
-/* NEW: No Amount UPI ID Display Styling */
-.upi-id-box {
-    background: rgba(255,255,255,0.8); border-radius: 12px; padding: 8px 15px;
-    font-size: 0.9rem; color: #555; margin-bottom: 15px; font-weight: 600;
-}
-.upi-label { color: #888; margin-right: 5px; }
-.upi-id-text { color: #333; letter-spacing: 0.5px; }
-
-/* NEW: Flexible Amount Checkbox Styling */
-.flexible-amount-box { margin-bottom: 20px; text-align: left; width: 100%; padding-left: 10px; }
-.hidden-check { display: none; }
-.flexible-label { display: flex; align-items: center; cursor: pointer; font-size: 0.9rem; font-weight: 600; color: #555; }
-.custom-check {
-    width: 20px; height: 20px; border: 2px solid #a8c0ff; border-radius: 6px;
-    margin-right: 10px; position: relative; transition: all 0.2s ease;
-}
-.custom-check::after {
-    content: '✓'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
-    color: white; font-size: 14px; transition: transform 0.2s ease;
-}
-.hidden-check:checked + .custom-check { background-color: #3f2b96; border-color: #3f2b96; }
-.hidden-check:checked + .custom-check::after { transform: translate(-50%, -50%) scale(1); }
